@@ -54,6 +54,9 @@ namespace xp
         operator reference() noexcept;
         operator const_reference() const noexcept;
 
+        reference raw_value() noexcept;
+        const_reference raw_value() const noexcept;
+
         template <class V>
         reference operator=(V&& value);
 
@@ -77,7 +80,7 @@ namespace xp
     //  - invoke_validators<std::size_t Offset, typename const_ref>( const_ref value);
     //  - invoke_observers<std::size_t Offset>();
     //
-    // Tthe `Offset` integral parameter is the offset of the observed member in the owner class.
+    // The `Offset` integral parameter is the offset of the observed member in the owner class.
     // The `const_ref` typename is a constant reference type on the proposed value.
 
     #define XPROPERTY(T, O, D)                                                              \
@@ -89,6 +92,11 @@ namespace xp
         inline typename ::xp::xproperty<T, O, D##_property>::reference operator=(V&& value) \
         {                                                                                   \
             return ::xp::xproperty<T, O, D##_property>::operator=(std::forward<V>(value));  \
+        }                                                                                   \
+                                                                                            \
+        static inline std::string name() noexcept                                           \
+        {                                                                                   \
+            return #D;                                                                      \
         }                                                                                   \
                                                                                             \
         static inline constexpr std::size_t offset() noexcept                               \
@@ -165,6 +173,18 @@ namespace xp
 
     template <class T, class O, class D>
     inline xproperty<T, O, D>::operator const_reference() const noexcept
+    {
+        return m_value;
+    }
+
+    template <class T, class O, class D>
+    inline auto xproperty<T, O, D>::raw_value() noexcept -> reference
+    {
+        return m_value;
+    }
+
+    template <class T, class O, class D>
+    inline auto xproperty<T, O, D>::raw_value() const noexcept -> const_reference
     {
         return m_value;
     }
