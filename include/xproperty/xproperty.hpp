@@ -19,7 +19,7 @@ namespace xp
      * xoffsetof implementation *
      ****************************/
 
-    #ifdef __clang__
+    #if defined(__clang__)
         #define xoffsetof(O, M)                                    \
         _Pragma("clang diagnostic push")                           \
         _Pragma("clang diagnostic ignored \"-Winvalid-offsetof\"") \
@@ -75,14 +75,6 @@ namespace xp
     //
     // Defines a property of the specified type and name, for the specified owner type.
     //
-    // The owner type must have two template methods
-    //
-    //  - invoke_validators<std::size_t Offset, typename const_ref>( const_ref value);
-    //  - invoke_observers<std::size_t Offset>();
-    //
-    // The `Offset` integral parameter is the offset of the observed member in the owner class.
-    // The `const_ref` typename is a constant reference type on the proposed value.
-
     #define XPROPERTY(T, O, D)                                                              \
     class D##_property : public ::xp::xproperty<T, O, D##_property>                         \
     {                                                                                       \
@@ -127,8 +119,8 @@ namespace xp
     //
     // Set up the static notifier for the specified property
 
-    #define XOBSERVE_STATIC(T, O, D) \
-    template <>                      \
+    #define XOBSERVE_STATIC(T, O, D)                                  \
+    template <>                                                       \
     inline void O::invoke_observers<xoffsetof(O, D)>() const
 
     /**************************
@@ -139,13 +131,42 @@ namespace xp
     //
     // Set up the static validator for the specified property
 
-    #define XVALIDATE_STATIC(T, O, D, A) \
-    template <>                          \
+    #define XVALIDATE_STATIC(T, O, D, A)                               \
+    template <>                                                        \
     inline auto O::invoke_validators<xoffsetof(O, D), T>(T && A) const
 
     /****************************
      * xproperty implementation *
      ****************************/
+
+    template <class T, class O, std::size_t I>
+    class has_validator
+    {
+        template <class OT>
+        static std::true_type test(decltype(std::declval<OT>().template invoke_validators<I>(std::declval<T>())));
+
+        template <class OT>
+        static std::false_type test(...);
+
+    public:
+
+        constexpr static bool value = decltype(test<O>(std::size_t(0)))::value == true;
+    };
+
+
+    template <class T, class O, std::size_t I>
+    class has_observer
+    {
+        template <class OT>
+        static std::true_type test(decltype(std::declval<OT>().template invoke_observers<I>()));
+
+        template <class OT>
+        static std::false_type test(...);
+
+    public:
+
+        constexpr static bool value = decltype(test<O>(std::size_t(0)))::value == true;
+    };
 
     template <class T, class O, class D>
     inline constexpr xproperty<T, O, D>::xproperty() noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
@@ -193,8 +214,11 @@ namespace xp
     template <class V>
     inline auto xproperty<T, O, D>::operator=(V&& value) -> reference
     {
-        m_value = owner()->template invoke_validators<derived_type::offset()>(std::forward<V>(value));
-        owner()->template invoke_observers<derived_type::offset()>();
+        constexpr std::size_t I = derived_type::offset();
+        constexpr bool hv = has_validator<T, O, I>::value;
+        m_value = owner()->template invoke_validators<I>(std::forward<V>(value));
+        constexpr bool ho = has_observer<T, O, I>::value;
+        owner()->template invoke_observers<I>();
         return m_value;
     }
 
