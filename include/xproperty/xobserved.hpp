@@ -75,13 +75,13 @@ namespace xp
         const derived_type& derived_cast() const noexcept;
 
         template <std::size_t I>
-        void observe(std::function<void(const derived_type&)> cb);
+        void observe(std::function<void(const derived_type&)>);
 
         template <std::size_t I>
         void unobserve();
 
         template <std::size_t I, class V>
-        void validate(std::function<V(const derived_type&, V)> cb);
+        void validate(std::function<V(const derived_type&, V)>);
 
         template <std::size_t I>
         void unvalidate();
@@ -104,6 +104,9 @@ namespace xp
 
         template <class X, class Y, class Z>
         friend class xproperty;
+
+        template <class P>
+        void notify(const P& property) const;
 
         template <std::size_t I>
         void invoke_observers() const;
@@ -173,6 +176,12 @@ namespace xp
     inline void xobserved<D>::unvalidate()
     {
         m_validators.erase(I);
+    }
+
+    template <class D>
+    template <class P>
+    inline void xobserved<D>::notify(const P& property) const
+    {
     }
 
     template <class D>
