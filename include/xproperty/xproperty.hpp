@@ -43,6 +43,10 @@ namespace xp
         using owner_type = O;
         using derived_type = D;
 
+        derived_type& derived_cast() & noexcept;
+        const derived_type& derived_cast() const& noexcept;
+        derived_type derived_cast() && noexcept;
+
         using value_type = T;
         using reference = T&;
         using const_reference = const T&;
@@ -94,9 +98,10 @@ namespace xp
             return ::xp::xproperty<T, O, D##_property>::operator=(std::forward<V>(value));  \
         }                                                                                   \
                                                                                             \
-        static inline std::string name() noexcept                                           \
+        static inline const std::string& name() noexcept                                    \
         {                                                                                   \
-            return #D;                                                                      \
+            static const std::string name = #D;                                             \
+            return name;                                                                    \
         }                                                                                   \
                                                                                             \
         static inline constexpr std::size_t offset() noexcept                               \
@@ -113,10 +118,12 @@ namespace xp
     //
     // Adds the required boilerplate for an obsered structure.
 
-    #define MAKE_OBSERVED()                 \
-    template <std::size_t I>                \
-    inline void invoke_observers() const {} \
-    template <std::size_t I, class V>       \
+    #define MAKE_OBSERVED()                                                                 \
+    template <class P>                                                                      \
+    inline void notify(const P&) const {}                                                   \
+    template <std::size_t I>                                                                \
+    inline void invoke_observers() const {}                                                 \
+    template <std::size_t I, class V>                                                       \
     inline auto invoke_validators(V&& r) const { return r; }
 
     /*************************
@@ -146,6 +153,24 @@ namespace xp
     /****************************
      * xproperty implementation *
      ****************************/
+
+    template <class T, class O, class D>
+    inline auto xproperty<T, O, D>::derived_cast() & noexcept -> derived_type&
+    {
+        return *static_cast<derived_type*>(this);
+    }
+
+    template <class T, class O, class D>
+    inline auto xproperty<T, O, D>::derived_cast() const & noexcept -> const derived_type&
+    {
+        return *static_cast<const derived_type*>(this);
+    }
+
+    template <class T, class O, class D>
+    inline auto xproperty<T, O, D>::derived_cast() && noexcept -> derived_type
+    {
+        return *static_cast<derived_type*>(this);
+    }
 
     template <class T, class O, class D>
     inline constexpr xproperty<T, O, D>::xproperty() noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
@@ -194,6 +219,7 @@ namespace xp
     inline auto xproperty<T, O, D>::operator=(V&& value) -> reference
     {
         m_value = owner()->template invoke_validators<derived_type::offset()>(std::forward<V>(value));
+        owner()->notify(derived_cast());
         owner()->template invoke_observers<derived_type::offset()>();
         return m_value;
     }
