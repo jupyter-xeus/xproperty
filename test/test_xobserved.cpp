@@ -41,13 +41,13 @@ TEST(xobserved, basic)
     });
 
     foo.bar = 1.0;
-    ASSERT_EQ(1.0, foo.bar);
+    ASSERT_EQ(1.0, double(foo.bar));
     ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
-    ASSERT_EQ(1.0, foo.bar);
+    ASSERT_EQ(1.0, double(foo.bar));
     
     XUNVALIDATE(foo, bar);
     foo.bar = -1.0;
-    ASSERT_EQ(-1.0, foo.bar);
+    ASSERT_EQ(-1.0, double(foo.bar));
     
     // validator coercing values to be non-positive
     XVALIDATE(foo, bar, [](const Observed&, double proposal) 
@@ -58,7 +58,7 @@ TEST(xobserved, basic)
     });
     
     foo.bar = 1.0;
-    ASSERT_EQ(0.0, foo.bar);
+    ASSERT_EQ(0.0, double(foo.bar));
 }
 
 TEST(xobserved, links)
@@ -66,7 +66,7 @@ TEST(xobserved, links)
     Observed source, target;
     source.bar = 1.0;
     XDLINK(source, bar, target, baz);
-    ASSERT_EQ(1.0, target.baz);
+    ASSERT_EQ(1.0, double(target.baz));
     source.bar = 2.0;
-    ASSERT_EQ(2.0, target.baz);
+    ASSERT_EQ(2.0, double(target.baz));
 }

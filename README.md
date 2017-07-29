@@ -114,7 +114,7 @@ Once `gtest` and `cmake` are installed, you can build and run the tests:
 ```bash
 mkdir build
 cd build
-cmake ..
+cmake -DBUILD_TESTS=ON ..
 make -j2 xtest
 ```
 
@@ -125,7 +125,7 @@ cd test
 conda env create -f ./test-environment.yml
 source activate test-xproperty
 cd ..
-cmake .
+cmake -DBUILD_TESTS=ON .
 make -j2 xtest
 ```
 

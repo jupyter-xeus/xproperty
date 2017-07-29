@@ -108,10 +108,10 @@ namespace xp
         template <class P>
         void notify(const P& property) const;
 
-        template <std::size_t I>
+        template <class P>
         void invoke_observers() const;
 
-        template <std::size_t I, class V>
+        template <class P, class V>
         auto invoke_validators(V&& r) const;
     };
 
@@ -185,10 +185,11 @@ namespace xp
     }
 
     template <class D>
-    template <std::size_t I>
+    template <class P>
     inline void xobserved<D>::invoke_observers() const
     {
-        auto position = m_observers.find(I);
+        constexpr std::size_t offset = P::offset();
+        auto position = m_observers.find(offset);
         if (position != m_observers.end())
         {
             const auto& callbacks = position->second;
@@ -200,10 +201,11 @@ namespace xp
     }
 
     template <class D>
-    template <std::size_t I, class V>
+    template <class P, class V>
     inline auto xobserved<D>::invoke_validators(V&& v) const
     {
-        auto position = m_validators.find(I);
+        constexpr std::size_t offset = P::offset();
+        auto position = m_validators.find(offset);
         if (position != m_validators.end())
         {
             const auto& callbacks = position->second;
