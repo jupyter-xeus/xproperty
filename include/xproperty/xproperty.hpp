@@ -121,9 +121,9 @@ namespace xp
     #define MAKE_OBSERVED()                                                                 \
     template <class P>                                                                      \
     inline void notify(const P&) const {}                                                   \
-    template <std::size_t I>                                                                \
+    template <class P>                                                                      \
     inline void invoke_observers() const {}                                                 \
-    template <std::size_t I, class V>                                                       \
+    template <class P, class V>                                                             \
     inline auto invoke_validators(V&& r) const { return r; }
 
     /*************************
@@ -136,7 +136,7 @@ namespace xp
 
     #define XOBSERVE_STATIC(T, O, D) \
     template <>                      \
-    inline void O::invoke_observers<xoffsetof(O, D)>() const
+    inline void O::invoke_observers<O::D##_property>() const
 
     /**************************
      * XVALIDATE_STATIC macro *
@@ -148,7 +148,7 @@ namespace xp
 
     #define XVALIDATE_STATIC(T, O, D, A) \
     template <>                          \
-    inline auto O::invoke_validators<xoffsetof(O, D), T>(T && A) const
+    inline auto O::invoke_validators<O::D##_property, T>(T && A) const
 
     /****************************
      * xproperty implementation *
@@ -218,9 +218,9 @@ namespace xp
     template <class V>
     inline auto xproperty<T, O, D>::operator=(V&& value) -> reference
     {
-        m_value = owner()->template invoke_validators<derived_type::offset()>(std::forward<V>(value));
+        m_value = owner()->template invoke_validators<derived_type>(std::forward<V>(value));
         owner()->notify(derived_cast());
-        owner()->template invoke_observers<derived_type::offset()>();
+        owner()->template invoke_observers<derived_type>();
         return m_value;
     }
 

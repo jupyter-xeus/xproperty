@@ -42,7 +42,7 @@ TEST(xproperty, basic)
     Foo foo;
 
     foo.bar = 1.0;
-    ASSERT_EQ(1.0, foo.bar);
+    ASSERT_EQ(1.0, double(foo.bar));
     // ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
     // ASSERT_EQ(1.0, foo.bar);
 }
