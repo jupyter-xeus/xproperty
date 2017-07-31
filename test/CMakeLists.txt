@@ -82,6 +82,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 set(XPROPERTY_TESTS
     main.cpp
+    test_utils.hpp
     test_xobserved.cpp
     test_xproperty.cpp
 )

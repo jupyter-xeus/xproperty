@@ -9,9 +9,9 @@
 #include "gtest/gtest.h"
 
 #include <iostream>
-
+#include <cstddef>
 #include <stdexcept>
-
+#include "test_utils.hpp"
 #include "xproperty/xobserved.hpp"
 
 struct Observed : public xp::xobserved<Observed>
@@ -22,17 +22,18 @@ struct Observed : public xp::xobserved<Observed>
 
 TEST(xobserved, basic)
 {
+    xp::reset_counter();
     Observed foo;
 
     XOBSERVE(foo, bar, [](const Observed& f) 
     {
-        std::cout << "Observer: New value of bar: " << f.bar << std::endl;
+        ++xp::get_observe_count();
     });
 
     // Validator refusing negative values
     XVALIDATE(foo, bar, [](const Observed&, double proposal) 
     {
-        std::cout << "Validator: Proposal: " << proposal << std::endl;
+        ++xp::get_validate_count();
         if (proposal < 0.0)
         {
             throw std::runtime_error("Only non-negative values are valid.");
@@ -42,16 +43,23 @@ TEST(xobserved, basic)
 
     foo.bar = 1.0;
     ASSERT_EQ(1.0, double(foo.bar));
+    ASSERT_EQ(1, xp::get_observe_count());
+    ASSERT_EQ(1, xp::get_validate_count());
     ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
     ASSERT_EQ(1.0, double(foo.bar));
+    ASSERT_EQ(1, xp::get_observe_count());
+    ASSERT_EQ(2, xp::get_validate_count());
     
     XUNVALIDATE(foo, bar);
     foo.bar = -1.0;
     ASSERT_EQ(-1.0, double(foo.bar));
+    ASSERT_EQ(2, xp::get_observe_count());
+    ASSERT_EQ(2, xp::get_validate_count());
     
     // validator coercing values to be non-positive
     XVALIDATE(foo, bar, [](const Observed&, double proposal) 
     {
+        ++xp::get_validate_count();
         if (proposal > 0)
             return 0.0;
         return proposal;
@@ -59,11 +67,15 @@ TEST(xobserved, basic)
     
     foo.bar = 1.0;
     ASSERT_EQ(0.0, double(foo.bar));
+    ASSERT_EQ(3, xp::get_observe_count());
+    ASSERT_EQ(3, xp::get_validate_count());
 }
 
 TEST(xobserved, links)
 {
+    xp::reset_counter();
     Observed source, target;
+
     source.bar = 1.0;
     XDLINK(source, bar, target, baz);
     ASSERT_EQ(1.0, double(target.baz));
