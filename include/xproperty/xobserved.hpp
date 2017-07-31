@@ -25,40 +25,40 @@ namespace xp
     // Register a callback reacting to changes of the specified attribute of the owner.
 
     #define XOBSERVE(O, A, C) \
-    O.observe<xoffsetof(decltype(O), A)>(C);
+    O.observe<decltype(O.A)>(C);
 
     // XUNOBSERVE(owner, Attribute)
     // Removes all callbacks reacting to changes of the specified attribute of the owner.
 
     #define XUNOBSERVE(O, A) \
-    O.unobserve<xoffsetof(decltype(O), A)>();
+    O.unobserve<decltype(O.A)>();
 
     // XVALIDATE(owner, Attribute, Validator)
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate<xoffsetof(decltype(O), A)>(std::function<typename decltype(O.A)::value_type(const decltype(O)&, typename decltype(O.A)::value_type)>(C));
+    O.validate<decltype(O.A)>(std::function<typename decltype(O.A)::value_type(const decltype(O)&, typename decltype(O.A)::value_type)>(C));
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
 
     #define XUNVALIDATE(O, A) \
-    O.unvalidate<xoffsetof(decltype(O), A)>();
+    O.unvalidate<decltype(O.A)>();
 
     // XDLINK(Source, AttributeName, Target, AttributeName)
     // Link the value of an attribute of a source xobserved object with the value of a target object.
 
-    #define XDLINK(S, SA, T, TA) \
-    T.TA = S.SA;                 \
-    S.observe<xoffsetof(decltype(S), SA)>([&S, &T](const auto&) { T.TA = S.SA; });
+    #define XDLINK(S, SA, T, TA)                                                   \
+    T.TA = S.SA;                                                                   \
+    S.observe<decltype(S.SA)>([&S, &T](const auto&) { T.TA = S.SA; });
 
     // XLINK(Source, AttributeName, Target, AttributeName)
     // Bidirectional link between attributes of two xobserved objects.
 
     #define XLINK(S, SA, T, TA)                                                    \
     T.TA = S.SA;                                                                   \
-    S.observe<xoffsetof(decltype(S), SA)>([&S, &T](const auto&) { T.TA = S.SA; }); \
-    T.observe<xoffsetof(decltype(T), TA)>([&S, &T](const auto&) { S.SA = T.TA; });
+    S.observe<decltype(S.SA)>([&S, &T](const auto&) { T.TA = S.SA; });                      \
+    T.observe<decltype(T.TA)>([&S, &T](const auto&) { S.SA = T.TA; });
 
     /*************************
      * xobserved declaration *
@@ -74,16 +74,16 @@ namespace xp
         derived_type& derived_cast() noexcept;
         const derived_type& derived_cast() const noexcept;
 
-        template <std::size_t I>
+        template <class P>
         void observe(std::function<void(const derived_type&)>);
 
-        template <std::size_t I>
+        template <class P>
         void unobserve();
 
-        template <std::size_t I, class V>
+        template <class P, class V>
         void validate(std::function<V(const derived_type&, V)>);
 
-        template <std::size_t I>
+        template <class P>
         void unvalidate();
 
     protected:
@@ -135,13 +135,14 @@ namespace xp
     }
 
     template <class D>
-    template <std::size_t I>
+    template <class P>
     inline void xobserved<D>::observe(std::function<void(const derived_type&)> cb)
     {
-        auto position = m_observers.find(I);
+        constexpr std::size_t offset = P::offset();
+        auto position = m_observers.find(offset);
         if (position == m_observers.end())
         {
-            m_observers[I] = {std::move(cb)};
+            m_observers[offset] = {std::move(cb)};
         }
         else
         {
@@ -150,20 +151,21 @@ namespace xp
     }
 
     template <class D>
-    template <std::size_t I>
+    template <class P>
     inline void xobserved<D>::unobserve()
     {
-        m_observers.erase(I);
+        m_observers.erase(P::offset());
     }
 
     template <class D>
-    template <std::size_t I, class V>
+    template <class P, class V>
     inline void xobserved<D>::validate(std::function<V(const derived_type&, V)> cb)
     {
-        auto position = m_validators.find(I);
+        constexpr std::size_t offset = P::offset();
+        auto position = m_validators.find(offset);
         if (position == m_validators.end())
         {
-            m_validators[I] = {std::move(cb)};
+            m_validators[offset] = {std::move(cb)};
         }
         else
         {
@@ -172,10 +174,10 @@ namespace xp
     }
 
     template <class D>
-    template <std::size_t I>
+    template <class P>
     inline void xobserved<D>::unvalidate()
     {
-        m_validators.erase(I);
+        m_validators.erase(P::offset());
     }
 
     template <class D>

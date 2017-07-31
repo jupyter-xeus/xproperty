@@ -58,8 +58,8 @@ namespace xp
         operator reference() noexcept;
         operator const_reference() const noexcept;
 
-        reference raw_value() noexcept;
-        const_reference raw_value() const noexcept;
+        reference operator()() noexcept;
+        const_reference operator()() const noexcept;
 
         template <class V>
         reference operator=(V&& value);
@@ -203,13 +203,13 @@ namespace xp
     }
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::raw_value() noexcept -> reference
+    inline auto xproperty<T, O, D>::operator()() noexcept -> reference
     {
         return m_value;
     }
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::raw_value() const noexcept -> const_reference
+    inline auto xproperty<T, O, D>::operator()() const noexcept -> const_reference
     {
         return m_value;
     }

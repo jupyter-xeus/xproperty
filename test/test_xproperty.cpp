@@ -8,10 +8,10 @@
 
 #include "gtest/gtest.h"
 
+#include <cstddef>
 #include <iostream>
-
 #include <stdexcept>
-
+#include "test_utils.hpp"
 #include "xproperty/xobserved.hpp"
 
 struct Foo
@@ -24,7 +24,7 @@ struct Foo
 
 XVALIDATE_STATIC(double, Foo, bar, proposal)
 {
-    std::cout << "Validator: Proposal: " << proposal << std::endl;
+    ++xp::get_validate_count();
     if (proposal < 0.0)
     {
         throw std::runtime_error("Only non-negative values are valid.");
@@ -34,15 +34,37 @@ XVALIDATE_STATIC(double, Foo, bar, proposal)
 
 XOBSERVE_STATIC(double, Foo, bar)
 {
-    std::cout << "Observer: New value of bar: " << bar << std::endl;
+    ++xp::get_observe_count();
 };
 
 TEST(xproperty, basic)
 {
+    xp::reset_counter();
     Foo foo;
 
     foo.bar = 1.0;
     ASSERT_EQ(1.0, double(foo.bar));
-    // ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
-    // ASSERT_EQ(1.0, foo.bar);
+    ASSERT_EQ(1, xp::get_observe_count());
+    ASSERT_EQ(1, xp::get_validate_count());
+    ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
+    ASSERT_EQ(1.0, double(foo.bar));
+    ASSERT_EQ(1, xp::get_observe_count());
+    ASSERT_EQ(2, xp::get_validate_count());
 }
+
+struct Wrapper
+{
+    XPROPERTY(Foo, Wrapper, foo);
+};
+
+TEST(xproperty, nested)
+{
+    xp::reset_counter();
+    Wrapper wrapper;
+
+    wrapper.foo().bar = 1.;
+    ASSERT_EQ(1.0, double(wrapper.foo().bar));
+    ASSERT_EQ(1, xp::get_observe_count());
+    ASSERT_EQ(1, xp::get_validate_count());
+}
+
