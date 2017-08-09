@@ -57,7 +57,7 @@ namespace xp
 
     #define XLINK(S, SA, T, TA)                                                    \
     T.TA = S.SA;                                                                   \
-    S.observe<decltype(S.SA)>([&S, &T](const auto&) { T.TA = S.SA; });                      \
+    S.observe<decltype(S.SA)>([&S, &T](const auto&) { T.TA = S.SA; });             \
     T.observe<decltype(T.TA)>([&S, &T](const auto&) { S.SA = T.TA; });
 
     /*************************

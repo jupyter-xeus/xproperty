@@ -44,7 +44,7 @@ namespace xp
         using derived_type = D;
 
         derived_type& derived_cast() & noexcept;
-        const derived_type& derived_cast() const& noexcept;
+        const derived_type& derived_cast() const & noexcept;
         derived_type derived_cast() && noexcept;
 
         using value_type = T;
