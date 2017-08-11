@@ -37,7 +37,7 @@ namespace xp
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate<decltype(O.A)>(std::function<typename decltype(O.A)::value_type(const decltype(O)&, typename decltype(O.A)::value_type)>(C));
+    O.validate<decltype(O.A)>(std::function<typename decltype(O.A)::value_type(const decltype(O)&, typename decltype(O.A)::value_type&)>(C));
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
@@ -81,7 +81,7 @@ namespace xp
         void unobserve();
 
         template <class P, class V>
-        void validate(std::function<V(const derived_type&, V)>);
+        void validate(std::function<V(const derived_type&, V&)>);
 
         template <class P>
         void unvalidate();
@@ -112,7 +112,7 @@ namespace xp
         void invoke_observers() const;
 
         template <class P, class V>
-        auto invoke_validators(V&& r) const;
+        auto invoke_validators(V&& r) const -> typename P::value_type;
     };
 
     template <class E>
@@ -159,7 +159,7 @@ namespace xp
 
     template <class D>
     template <class P, class V>
-    inline void xobserved<D>::validate(std::function<V(const derived_type&, V)> cb)
+    inline void xobserved<D>::validate(std::function<V(const derived_type&, V&)> cb)
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
@@ -204,19 +204,22 @@ namespace xp
 
     template <class D>
     template <class P, class V>
-    inline auto xobserved<D>::invoke_validators(V&& v) const
+    inline auto xobserved<D>::invoke_validators(V&& v) const -> typename P::value_type
     {
+        using value_type = typename P::value_type;
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
         if (position != m_validators.end())
         {
             const auto& callbacks = position->second;
+            value_type value(v);
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                v = linb::any_cast<std::function<V(const derived_type&, V)>>(*it)(derived_cast(), std::forward<V>(v));
+                value = linb::any_cast<std::function<value_type(const derived_type&, value_type&)>>(*it)(derived_cast(), value);
             }
+            return value;
         }
-        return v;
+        return value_type(v);
     }
 }
 

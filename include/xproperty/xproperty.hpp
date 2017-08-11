@@ -81,7 +81,7 @@ namespace xp
     //
     // The owner type must have two template methods
     //
-    //  - invoke_validators<std::size_t Offset, typename const_ref>( const_ref value);
+    //  - invoke_validators<std::size_t Offset, typename const_ref>(const_ref value);
     //  - invoke_observers<std::size_t Offset>();
     //
     // The `Offset` integral parameter is the offset of the observed member in the owner class.
