@@ -26,6 +26,9 @@ namespace xp
         offsetof(O, M)                                             \
         _Pragma("clang diagnostic pop")
     #else
+        #ifdef __GNUC__
+            #pragma GCC diagnostic ignored "-Winvalid-offsetof"
+        #endif
         #define xoffsetof(O, M) offsetof(O, M)
     #endif
 
@@ -71,9 +74,9 @@ namespace xp
         value_type m_value;
     };
 
-    /*******************
-     * XPROPERTY macro *
-     *******************/
+    /********************************************************
+     * XPROPERTY, XDEFAULT_VALUE, XDEFAULT_GENERATOR macros *
+     ********************************************************/
 
     // XPROPERTY(Type, Owner, Name)
     //
@@ -87,12 +90,31 @@ namespace xp
     // The `Offset` integral parameter is the offset of the observed member in the owner class.
     // The `const_ref` typename is a constant reference type on the proposed value.
 
-    #define XPROPERTY(T, O, D)                                                                   \
+    #define XDEFAULT_GENERATOR(O, D)                                                             \
+    inline static auto default_value(typename O::D##_property::tag)                              \
+         -> typename O::D##_property::value_type
+                                                                                                 
+    #define XDEFAULT_VALUE(O, D, value)                                                          \
+    inline static auto default_value(typename O::D##_property::tag)                              \
+          -> typename O::D##_property::value_type                                                \
+    {                                                                                            \
+        return value;                                                                            \
+    }
+
+    #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
     class D##_property : public ::xp::xproperty<T, O, D##_property>                              \
     {                                                                                            \
     public:                                                                                      \
                                                                                                  \
-        using ::xp::xproperty<T, O, D##_property>::operator=;                                    \
+        struct tag                                                                               \
+        {                                                                                        \
+            using value_type = T;                                                                \
+        };                                                                                       \
+                                                                                                 \
+        using base_type = ::xp::xproperty<T, O, D##_property>;                                   \
+        using value_type = typename base_type::value_type;                                       \
+                                                                                                 \
+        using base_type::operator=;                                                              \
                                                                                                  \
         static inline const std::string& name() noexcept                                         \
         {                                                                                        \
@@ -106,6 +128,17 @@ namespace xp
         }                                                                                        \
     } D;
 
+    #define XPROPERTY_DEFAULT(T, O, D, value)                                                    \
+    XPROPERTY_NODEFAULT(T, O, D)                                                                  \
+    XDEFAULT_VALUE(O, D, value)
+    
+    #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, NAME, ...) NAME
+
+    // Workaround for MSVC not expanding macros
+    #define XPROPERTY_EXPAND( x ) x
+
+    #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
+
     /***********************
      * MAKE_OBSERVED macro *
      ***********************/
@@ -114,13 +147,22 @@ namespace xp
     //
     // Adds the required boilerplate for an obsered structure.
 
-    #define MAKE_OBSERVED()                                                                 \
-    template <class P>                                                                      \
-    inline void notify(const P&) const {}                                                   \
-    template <class P>                                                                      \
-    inline void invoke_observers() const {}                                                 \
-    template <class P, class V>                                                             \
-    inline auto invoke_validators(V&& r) const { return r; }
+    #define MAKE_OBSERVED()                                                                      \
+    template <class P>                                                                           \
+    inline void notify(const P&) const {}                                                        \
+                                                                                                 \
+    template <class P>                                                                           \
+    inline void invoke_observers() const {}                                                      \
+                                                                                                 \
+    template <class P, class V>                                                                  \
+    inline auto invoke_validators(V&& r) const { return r; }                                     \
+                                                                                                 \
+    template <class Tag>                                                                         \
+    inline static auto default_value(Tag) -> typename Tag::value_type                            \
+    {                                                                                            \
+        using value_type = typename Tag::value_type;                                             \
+        return value_type();                                                                     \
+    }
 
     /*************************
      * XOBSERVE_STATIC macro *
@@ -170,7 +212,7 @@ namespace xp
 
     template <class T, class O, class D>
     inline constexpr xproperty<T, O, D>::xproperty() noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_value()
+        : m_value(O::default_value(typename D::tag()))
     {
     }
 
