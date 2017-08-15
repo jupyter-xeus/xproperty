@@ -86,6 +86,9 @@ namespace xp
         template <class P>
         void unvalidate();
 
+        template <class P>
+        static typename P::value_type default_value();
+
     protected:
 
         xobserved() = default;
@@ -178,6 +181,14 @@ namespace xp
     inline void xobserved<D>::unvalidate()
     {
         m_validators.erase(P::offset());
+    }
+
+    template <class D>
+    template <class P>
+    inline auto xobserved<D>::default_value() -> typename P::value_type
+    {
+        using value_type = typename P::value_type;
+        return value_type();
     }
 
     template <class D>
