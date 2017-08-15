@@ -25,7 +25,7 @@ TEST(xobserved, basic)
     xp::reset_counter();
     Observed foo;
 
-    XOBSERVE(foo, bar, [](const Observed& f) 
+    XOBSERVE(foo, bar, [](const Observed&) 
     {
         ++xp::get_observe_count();
     });

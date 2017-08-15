@@ -26,6 +26,9 @@ namespace xp
         offsetof(O, M)                                             \
         _Pragma("clang diagnostic pop")
     #else
+        #ifdef __GNUC__
+            #pragma GCC diagnostic ignored "-Winvalid-offsetof"
+        #endif
         #define xoffsetof(O, M) offsetof(O, M)
     #endif
 
@@ -71,9 +74,9 @@ namespace xp
         value_type m_value;
     };
 
-    /*******************
-     * XPROPERTY macro *
-     *******************/
+    /********************************************************
+     * XPROPERTY, XDEFAULT_VALUE, XDEFAULT_GENERATOR macros *
+     ********************************************************/
 
     // XPROPERTY(Type, Owner, Name)
     //
@@ -87,7 +90,7 @@ namespace xp
     // The `Offset` integral parameter is the offset of the observed member in the owner class.
     // The `const_ref` typename is a constant reference type on the proposed value.
 
-    #define XPROPERTY(T, O, D)                                                                   \
+    #define XPROPERTY_DEFAULT(T, O, D, value)                                                    \
     class D##_property : public ::xp::xproperty<T, O, D##_property>                              \
     {                                                                                            \
     public:                                                                                      \
@@ -104,7 +107,26 @@ namespace xp
         {                                                                                        \
             return xoffsetof(O, D);                                                              \
         }                                                                                        \
+                                                                                                 \
+        static inline T default_value()                                                          \
+        {                                                                                        \
+            return T(value);                                                                     \
+        }                                                                                        \
     } D;
+
+    #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
+    XPROPERTY_DEFAULT(T, O, D, T())
+
+    #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, NAME, ...) NAME
+
+    #ifdef _MSC_VER
+    // Workaround for MSVC not expanding macros
+    #define XPROPERTY_EXPAND( x ) x
+    #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
+    #else
+    #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
+    #endif
+
 
     /***********************
      * MAKE_OBSERVED macro *
@@ -117,8 +139,10 @@ namespace xp
     #define MAKE_OBSERVED()                                                                 \
     template <class P>                                                                      \
     inline void notify(const P&) const {}                                                   \
+                                                                                            \
     template <class P>                                                                      \
     inline void invoke_observers() const {}                                                 \
+                                                                                            \
     template <class P, class V>                                                             \
     inline auto invoke_validators(V&& r) const { return r; }
 
@@ -170,7 +194,7 @@ namespace xp
 
     template <class T, class O, class D>
     inline constexpr xproperty<T, O, D>::xproperty() noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_value()
+        : m_value(D::default_value())
     {
     }
 
