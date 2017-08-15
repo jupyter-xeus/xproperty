@@ -54,6 +54,8 @@ TEST(xproperty, basic)
 
 struct Wrapper
 {
+    MAKE_OBSERVED()
+
     XPROPERTY(Foo, Wrapper, foo);
 };
 
@@ -66,5 +68,19 @@ TEST(xproperty, nested)
     ASSERT_EQ(1.0, double(wrapper.foo().bar));
     ASSERT_EQ(1, xp::get_observe_count());
     ASSERT_EQ(1, xp::get_validate_count());
+}
+
+struct Bat
+{
+    MAKE_OBSERVED()
+
+    XPROPERTY(double, Bat, man, 1.0);
+};
+
+TEST(xproperty, default_values)
+{
+    Bat bat;
+
+    ASSERT_EQ(1.0, double(bat.man));
 }
 

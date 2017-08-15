@@ -86,6 +86,9 @@ namespace xp
         template <class P>
         void unvalidate();
 
+        template <class Tag>
+        static typename Tag::value_type default_value(Tag);
+
     protected:
 
         xobserved() = default;
@@ -106,7 +109,7 @@ namespace xp
         friend class xproperty;
 
         template <class P>
-        void notify(const P& property) const;
+        void notify(const P&) const;
 
         template <class P>
         void invoke_observers() const;
@@ -181,8 +184,16 @@ namespace xp
     }
 
     template <class D>
+    template <class Tag>
+    inline auto xobserved<D>::default_value(Tag) -> typename Tag::value_type
+    {
+        using value_type = typename Tag::value_type;
+        return value_type();
+    }
+
+    template <class D>
     template <class P>
-    inline void xobserved<D>::notify(const P& property) const
+    inline void xobserved<D>::notify(const P&) const
     {
     }
 
