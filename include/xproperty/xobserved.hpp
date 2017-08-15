@@ -106,7 +106,7 @@ namespace xp
         friend class xproperty;
 
         template <class P>
-        void notify(const P& property) const;
+        void notify(const P&) const;
 
         template <class P>
         void invoke_observers() const;
@@ -182,7 +182,7 @@ namespace xp
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::notify(const P& property) const
+    inline void xobserved<D>::notify(const P&) const
     {
     }
 
