@@ -87,27 +87,23 @@ namespace xp
     // The `Offset` integral parameter is the offset of the observed member in the owner class.
     // The `const_ref` typename is a constant reference type on the proposed value.
 
-    #define XPROPERTY(T, O, D)                                                              \
-    class D##_property : public ::xp::xproperty<T, O, D##_property>                         \
-    {                                                                                       \
-    public:                                                                                 \
-                                                                                            \
-        template <class V>                                                                  \
-        inline typename ::xp::xproperty<T, O, D##_property>::reference operator=(V&& value) \
-        {                                                                                   \
-            return ::xp::xproperty<T, O, D##_property>::operator=(std::forward<V>(value));  \
-        }                                                                                   \
-                                                                                            \
-        static inline const std::string& name() noexcept                                    \
-        {                                                                                   \
-            static const std::string name = #D;                                             \
-            return name;                                                                    \
-        }                                                                                   \
-                                                                                            \
-        static inline constexpr std::size_t offset() noexcept                               \
-        {                                                                                   \
-            return xoffsetof(O, D);                                                         \
-        }                                                                                   \
+    #define XPROPERTY(T, O, D)                                                                   \
+    class D##_property : public ::xp::xproperty<T, O, D##_property>                              \
+    {                                                                                            \
+    public:                                                                                      \
+                                                                                                 \
+        using ::xp::xproperty<T, O, D##_property>::operator=;                                    \
+                                                                                                 \
+        static inline const std::string& name() noexcept                                         \
+        {                                                                                        \
+            static const std::string name = #D;                                                  \
+            return name;                                                                         \
+        }                                                                                        \
+                                                                                                 \
+        static inline constexpr std::size_t offset() noexcept                                    \
+        {                                                                                        \
+            return xoffsetof(O, D);                                                              \
+        }                                                                                        \
     } D;
 
     /***********************
