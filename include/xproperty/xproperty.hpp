@@ -43,12 +43,12 @@ namespace xp
     {
     public:
 
-        using owner_type = O;
-        using derived_type = D;
+        using xp_owner_type = O;
+        using xp_derived_type = D;
 
-        derived_type& derived_cast() & noexcept;
-        const derived_type& derived_cast() const & noexcept;
-        derived_type derived_cast() && noexcept;
+        xp_derived_type& derived_cast() & noexcept;
+        const xp_derived_type& derived_cast() const & noexcept;
+        xp_derived_type derived_cast() && noexcept;
 
         using value_type = T;
         using reference = T&;
@@ -69,7 +69,7 @@ namespace xp
 
     private:
 
-        owner_type* owner() noexcept;
+        xp_owner_type* owner() noexcept;
 
         value_type m_value;
     };
@@ -175,21 +175,21 @@ namespace xp
      ****************************/
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::derived_cast() & noexcept -> derived_type&
+    inline auto xproperty<T, O, D>::derived_cast() & noexcept -> xp_derived_type&
     {
-        return *static_cast<derived_type*>(this);
+        return *static_cast<xp_derived_type*>(this);
     }
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::derived_cast() const & noexcept -> const derived_type&
+    inline auto xproperty<T, O, D>::derived_cast() const & noexcept -> const xp_derived_type&
     {
-        return *static_cast<const derived_type*>(this);
+        return *static_cast<const xp_derived_type*>(this);
     }
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::derived_cast() && noexcept -> derived_type
+    inline auto xproperty<T, O, D>::derived_cast() && noexcept -> xp_derived_type
     {
-        return *static_cast<derived_type*>(this);
+        return *static_cast<xp_derived_type*>(this);
     }
 
     template <class T, class O, class D>
@@ -238,16 +238,16 @@ namespace xp
     template <class V>
     inline auto xproperty<T, O, D>::operator=(V&& value) -> reference
     {
-        m_value = owner()->template invoke_validators<derived_type>(std::forward<V>(value));
+        m_value = owner()->template invoke_validators<xp_derived_type>(std::forward<V>(value));
         owner()->notify(derived_cast());
-        owner()->template invoke_observers<derived_type>();
+        owner()->template invoke_observers<xp_derived_type>();
         return m_value;
     }
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::owner() noexcept -> owner_type*
+    inline auto xproperty<T, O, D>::owner() noexcept -> xp_owner_type*
     {
-        return reinterpret_cast<owner_type*>(reinterpret_cast<char*>(this) - derived_type::offset());
+        return reinterpret_cast<xp_owner_type*>(reinterpret_cast<char*>(this) - xp_derived_type::offset());
     }
 }
 

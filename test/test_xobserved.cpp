@@ -82,3 +82,23 @@ TEST(xobserved, links)
     source.bar = 2.0;
     ASSERT_EQ(2.0, double(target.baz));
 }
+
+TEST(xobserved, value_semantic)
+{
+    Observed foo1, foo2;
+
+    XOBSERVE(foo1, bar, [](const Observed&) 
+    {
+        ++xp::get_observe_count();
+    });
+
+    foo1.bar = 2.5;
+    foo2.bar = 4.5;
+
+    xp::reset_counter();
+    foo1 = foo2;
+
+    ASSERT_EQ(double(foo2.bar), double(foo1.bar));
+    ASSERT_EQ(0, xp::get_observe_count());
+}
+
