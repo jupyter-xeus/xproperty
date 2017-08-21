@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include "test_utils.hpp"
 #include "xproperty/xobserved.hpp"
 
@@ -82,5 +83,24 @@ TEST(xproperty, default_values)
     Bat bat;
 
     ASSERT_EQ(1.0, double(bat.man));
+}
+
+template <class D>
+struct str_base
+{
+    using derived_type = D;
+    MAKE_OBSERVED()
+
+    XPROPERTY(std::string, derived_type, name);
+};
+
+struct str_final : str_base<str_final>
+{
+};
+
+TEST(xproperty, string_conversion)
+{
+    str_final str;
+    str.name = "test";
 }
 
