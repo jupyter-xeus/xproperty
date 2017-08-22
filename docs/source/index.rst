@@ -46,6 +46,11 @@ This software is licensed under the BSD-3-Clause license. See the LICENSE file f
    installation
 
 .. toctree::
+   :caption: DEVELOPER ZONE
+
+   compilers
+
+.. toctree::
    :caption: USAGE
    :maxdepth: 2
 
