@@ -1,7 +1,0 @@
-name: test-xproperty
-channels:
-    - conda-forge
-    - defaults
-dependencies:
-    - cmake
-    - gtest

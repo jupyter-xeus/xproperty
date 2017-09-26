@@ -15,7 +15,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "any.hpp"
+#include "xtl/xany.hpp"
+
 #include "xproperty.hpp"
 
 namespace xp
@@ -100,7 +101,7 @@ namespace xp
     private:
 
         std::unordered_map<std::size_t, std::vector<std::function<void(const derived_type&)>>> m_observers;
-        std::unordered_map<std::size_t, std::vector<linb::any>> m_validators;
+        std::unordered_map<std::size_t, std::vector<xtl::any>> m_validators;
 
         template <class X, class Y, class Z>
         friend class xproperty;
@@ -215,7 +216,7 @@ namespace xp
             value_type value(v);
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                value = linb::any_cast<std::function<value_type(const derived_type&, value_type&)>>(*it)(derived_cast(), value);
+                value = xtl::any_cast<std::function<value_type(const derived_type&, value_type&)>>(*it)(derived_cast(), value);
             }
             return value;
         }

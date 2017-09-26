@@ -11,7 +11,9 @@
 #include <iostream>
 #include <cstddef>
 #include <stdexcept>
+
 #include "test_utils.hpp"
+
 #include "xproperty/xobserved.hpp"
 
 struct Observed : public xp::xobserved<Observed>
