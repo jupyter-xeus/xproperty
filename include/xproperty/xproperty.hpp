@@ -64,6 +64,9 @@ namespace xp
         reference operator()() noexcept;
         const_reference operator()() const noexcept;
 
+        template <class Arg, class... Args>
+        xp_owner_type operator()(Arg&& arg, Args&&... args) noexcept;
+
         template <class V>
         reference operator=(V&& value);
 
@@ -232,6 +235,15 @@ namespace xp
     inline auto xproperty<T, O, D>::operator()() const noexcept -> const_reference
     {
         return m_value;
+    }
+
+
+    template <class T, class O, class D>
+    template <class Arg, class... Args>
+    inline auto xproperty<T, O, D>::operator()(Arg&& arg, Args&&... args) noexcept -> xp_owner_type
+    {
+        m_value = value_type(std::forward<Arg>(arg), std::forward<Args>(args)...);
+        return std::move(*owner());
     }
 
     template <class T, class O, class D>
