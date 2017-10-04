@@ -82,8 +82,7 @@ install:
     # Useful for debugging any issues with conda
     - conda info -a
     - cd test
-    - conda env create -f ./test-environment.yml
-    - source activate test-xproperty
+    - conda install xtl cmake gtest -c conda-forge
     - cd ..
     - cmake -DBUILD_TESTS=ON .
     - make -j2 test_xproperty
