@@ -33,14 +33,13 @@ TEST(xobserved, basic)
     });
 
     // Validator refusing negative values
-    XVALIDATE(foo, bar, [](const Observed&, double proposal) 
+    XVALIDATE(foo, bar, [](const Observed&, double& proposal) 
     {
         ++xp::get_validate_count();
         if (proposal < 0.0)
         {
             throw std::runtime_error("Only non-negative values are valid.");
         }
-        return proposal;
     });
 
     foo.bar = 1.0;
@@ -59,12 +58,13 @@ TEST(xobserved, basic)
     ASSERT_EQ(2, xp::get_validate_count());
     
     // validator coercing values to be non-positive
-    XVALIDATE(foo, bar, [](const Observed&, double proposal) 
+    XVALIDATE(foo, bar, [](const Observed&, double& proposal) 
     {
         ++xp::get_validate_count();
         if (proposal > 0)
-            return 0.0;
-        return proposal;
+        {
+            proposal = 0.0;
+        }
     });
     
     foo.bar = 1.0;
