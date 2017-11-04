@@ -1,0 +1,1 @@
+/home/sylvain/miniconda3/bin/c++   -march=native -Wunused-parameter -Wextra -Wreorder -Wconversion -std=c++14 -O3 -DNDEBUG  -rdynamic CMakeFiles/test_xproperty.dir/main.cpp.o CMakeFiles/test_xproperty.dir/test_xobserved.cpp.o CMakeFiles/test_xproperty.dir/test_xproperty.cpp.o  -o test_xproperty -Wl,-Bstatic -lgtest -lgtest_main -Wl,-Bdynamic -lpthread 
