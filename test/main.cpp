@@ -52,6 +52,8 @@ struct xcontainer : xiterable<D>
     template <layout_type L>
     using select_iterator = select_iterator_impl<L, storage_iterator, layout_iterator<L>>;
 
+    using iterator = select_iterator<layout_type::column_major>;
+
     template <layout_type L = layout_type::row_major>
     inline select_iterator<L> begin()
     {
