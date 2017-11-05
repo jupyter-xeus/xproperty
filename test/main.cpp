@@ -32,7 +32,7 @@ struct xiterable
 template <layout_type L, class A, class B>
 struct select_iterator_impl
 {
-    using type = std::conditional_t<L = layout_type::column_major, A, B>;
+    using type = typename std::conditional<L = layout_type::column_major, A, B>::type;
 };
 
 template <class D>
