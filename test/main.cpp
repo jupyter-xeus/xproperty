@@ -24,6 +24,8 @@ struct xiterable
 {
     template <layout_type L>
     using layout_iterator = xiterator<D, D, L>;
+
+    using default_iterator = layout_iterator<layout_type::row_major>;
 };
 
 template <layout_type L, class>
