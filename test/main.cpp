@@ -35,16 +35,22 @@ struct select_iterator_impl
     using type = std::conditional_t<L == layout_type::column_major, A, B>;
 };
 
+class st {};
+
 template <class D>
 struct xcontainer : xiterable<D>
 {
     using iterable_base = xiterable<D>;
+    using storage_iterator = st;
 
     template <layout_type L>
     using layout_iterator = typename iterable_base::template layout_iterator<L>;
 
+    template <layout_type L, class It1, class It2>
+    using select_iterator_impl = std::conditional_t<L == layout_type::row_major, It1, It2>;
+
     template <layout_type L>
-    using select_iterator = typename select_iterator_impl<L, layout_iterator<L>, layout_iterator<L>>::type;
+    using select_iterator = select_iterator_impl<L, storage_iterator, layout_iterator<L>>;
 
     template <layout_type L = layout_type::row_major>
     inline select_iterator<L> begin()
