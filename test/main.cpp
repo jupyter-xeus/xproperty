@@ -6,7 +6,48 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#include <iostream>
+#include <utility>
+#include <type_traits>
+
+
+    struct identity_functor
+    {
+        template <class T>
+        T&& operator()(T&& x) const
+        {
+            return std::forward<T>(x);
+        }
+    };
+
+    template <class TF, class FF>
+    auto static_if(std::true_type, const TF& tf, const FF&)
+    {
+        return tf(identity_functor());
+    }
+
+    template <class TF, class FF>
+    auto static_if(std::false_type, const TF&, const FF& ff)
+    {
+        return ff(identity_functor());
+    }
+
+    template <bool cond, class TF, class FF>
+    auto static_if(const TF& tf, const FF& ff)
+    {
+        return static_if(std::integral_constant<bool, cond>(), tf, ff);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 enum class layout_type
 {
@@ -47,8 +88,13 @@ struct xcontainer : xiterable<D>
     template <layout_type L = layout_type::row_major>
     inline select_iterator<L> begin()
     {
-        std::cout << "begin";
-        return select_iterator<L>();
+        return static_if<L == layout_type::row_major>([&](auto self)
+        {
+            return select_iterator<L>();
+        }, /*else*/ [&](auto self)
+        {
+            return select_iterator<L>();
+        });
     }
 };
 
