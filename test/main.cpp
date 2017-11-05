@@ -8,56 +8,57 @@
 
 #include <iostream>
 
-enum class ltype
+enum class layout_type
 {
-    a = 1,
-    b = 2
+    row_major = 1,
+    column_major = 2
 };
 
-template <ltype, class>
-struct x
+template <class, class, layout_type>
+struct xiterator
 {
 };
 
 template <class D>
-struct base
+struct xiterable
 {
-    template <ltype L>
-    using bound_type = x<L, D>;
+    template <layout_type L>
+    using layout_iterator = xiterator<D, D, L>;
 };
 
-template <class>
-struct some
-{};
+template <layout_type L, class>
+struct select_iterator_impl
+{
+};
 
 template <class D>
-struct derived : base<D>
+struct xcontainer : xiterable<D>
 {
-    using base_type = base<D>;
+    using iterable_base = xiterable<D>;
 
-    template <ltype L>
-    using type = typename base_type::template bound_type<L>;
+    template <layout_type L>
+    using layout_iterator = typename iterable_base::template layout_iterator<L>;
 
-    template <ltype L>
-    using select_type = some<type<L>>;
+    template <layout_type L>
+    using select_iterator = select_iterator_impl<L, layout_iterator<L>>;
 
-    template <ltype L = ltype::a>
-    inline auto foo() -> select_type<L>
+    template <layout_type L = layout_type::row_major>
+    inline select_iterator<L> begin()
     {
-        std::cout << "foo";
-        return select_type<L>();
+        std::cout << "begin";
+        return select_iterator<L>();
     }
 };
 
-struct concrete : derived<concrete>
+struct concrete : xcontainer<concrete>
 {
 };
 
 int main(int argc, char* argv[])
 {
-    derived<double>::template type<ltype::a> y;
-    derived<double> owner;
-    owner.foo();
+    xcontainer<double>::template layout_iterator<layout_type::row_major> y;
+    xcontainer<double> owner;
+    owner.begin();
     return 0;
 }
 
