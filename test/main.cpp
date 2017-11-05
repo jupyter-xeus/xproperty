@@ -9,46 +9,6 @@
 #include <utility>
 #include <type_traits>
 
-
-    struct identity_functor
-    {
-        template <class T>
-        T&& operator()(T&& x) const
-        {
-            return std::forward<T>(x);
-        }
-    };
-
-    template <class TF, class FF>
-    auto static_if(std::true_type, const TF& tf, const FF&)
-    {
-        return tf(identity_functor());
-    }
-
-    template <class TF, class FF>
-    auto static_if(std::false_type, const TF&, const FF& ff)
-    {
-        return ff(identity_functor());
-    }
-
-    template <bool cond, class TF, class FF>
-    auto static_if(const TF& tf, const FF& ff)
-    {
-        return static_if(std::integral_constant<bool, cond>(), tf, ff);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
 enum class layout_type
 {
     row_major = 1,
@@ -69,9 +29,10 @@ struct xiterable
     using default_iterator = layout_iterator<layout_type::row_major>;
 };
 
-template <layout_type L, class>
+template <layout_type L, class A, class B>
 struct select_iterator_impl
 {
+    using type = std::conditional_t<L = layout_type::column_major, A, B>
 };
 
 template <class D>
@@ -83,18 +44,13 @@ struct xcontainer : xiterable<D>
     using layout_iterator = typename iterable_base::template layout_iterator<L>;
 
     template <layout_type L>
-    using select_iterator = select_iterator_impl<L, layout_iterator<L>>;
+    using select_iterator = typename select_iterator_impl<L, layout_iterator<L>, layout_iterator<L>>::type;
 
     template <layout_type L = layout_type::row_major>
     inline select_iterator<L> begin()
     {
-        return static_if<L == layout_type::row_major>([&](auto self)
-        {
-            return select_iterator<L>();
-        }, /*else*/ [&](auto self)
-        {
-            return select_iterator<L>();
-        });
+        return select_iterator<L>();
+        return select_iterator<L>();
     }
 };
 
