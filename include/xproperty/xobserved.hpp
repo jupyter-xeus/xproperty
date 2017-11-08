@@ -208,21 +208,20 @@ namespace xp
     inline auto xobserved<D>::invoke_validators(V&& v) const -> typename P::value_type
     {
         using value_type = typename P::value_type;
+        value_type value(std::forward<V>(v));
 
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
         if (position != m_validators.end())
         {
             const auto& callbacks = position->second;
-            value_type value(std::forward<V>(v));
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
                 xtl::any_cast<std::function<void(const derived_type&, value_type&)>>(*it)(derived_cast(), value);
             }
-            return std::move(value);
         }
 
-        return value_type(std::forward<V>(v));
+        return value;
     }
 }
 
