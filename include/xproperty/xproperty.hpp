@@ -87,11 +87,14 @@ namespace xp
     //
     // The owner type must have two template methods
     //
-    //  - invoke_validators<std::size_t Offset, typename const_ref>(const_ref value);
-    //  - invoke_observers<std::size_t Offset>();
+    //  - template <std::size_t Offset, class T>
+    //    auto invoke_validators(T&& proposal) const;
+    //  - template <std::size_t Offset
+    //    void invoke_observers() const;
     //
     // The `Offset` integral parameter is the offset of the observed member in the owner class.
-    // The `const_ref` typename is a constant reference type on the proposed value.
+    // The `T` typename is a universal reference on the proposed value.
+    // The return type of `invoke_validator` must be convertible to the value_type of the property.
 
     #define XPROPERTY_DEFAULT(T, O, D, value)                                                    \
     class D##_property : public ::xp::xproperty<T, O, D##_property>                              \
@@ -124,12 +127,11 @@ namespace xp
 
     #ifdef _MSC_VER
     // Workaround for MSVC not expanding macros
-    #define XPROPERTY_EXPAND( x ) x
+    #define XPROPERTY_EXPAND(x) x
     #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
     #else
     #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
     #endif
-
 
     /***********************
      * MAKE_OBSERVED macro *
@@ -171,7 +173,7 @@ namespace xp
 
     #define XVALIDATE_STATIC(T, O, D, A) \
     template <>                          \
-    inline auto O::invoke_validators<O::D##_property, T>(T && A) const
+    inline auto O::invoke_validators<O::D##_property, T>(T&& A) const
 
     /****************************
      * xproperty implementation *
@@ -236,7 +238,6 @@ namespace xp
     {
         return m_value;
     }
-
 
     template <class T, class O, class D>
     template <class Arg, class... Args>
