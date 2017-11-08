@@ -113,7 +113,7 @@ namespace xp
         void invoke_observers() const;
 
         template <class P, class V>
-        auto invoke_validators(V&& r) const -> typename P::value_type;
+        auto invoke_validators(V&& r) const;
     };
 
     template <class E>
@@ -205,7 +205,7 @@ namespace xp
 
     template <class D>
     template <class P, class V>
-    inline auto xobserved<D>::invoke_validators(V&& v) const -> typename P::value_type
+    inline auto xobserved<D>::invoke_validators(V&& v) const
     {
         using value_type = typename P::value_type;
         value_type value(std::forward<V>(v));
