@@ -11,6 +11,9 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <utility>
+
+#include "xtl/xfunctional.hpp"
 
 namespace xp
 {
@@ -82,6 +85,8 @@ namespace xp
      ********************************************************/
 
     // XPROPERTY(Type, Owner, Name)
+    // XPROPERTY(Type, Owner, Name, Value)
+    // XPROPERTY(Type, Owner, Name, Value, Validator)
     //
     // Defines a property of the specified type and name, for the specified owner type.
     //
@@ -96,12 +101,19 @@ namespace xp
     // The `T` typename is a universal reference on the proposed value.
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
 
-    #define XPROPERTY_DEFAULT(T, O, D, value)                                                    \
+    #define XPROPERTY_GENERAL(T, O, D, value, lambda_validator)                                  \
     class D##_property : public ::xp::xproperty<T, O, D##_property>                              \
     {                                                                                            \
     public:                                                                                      \
                                                                                                  \
-        using ::xp::xproperty<T, O, D##_property>::operator=;                                    \
+        using base_type = ::xp::xproperty<T, O, D##_property>;                                   \
+                                                                                                 \
+        template <class V>                                                                       \
+        typename base_type::reference operator=(V&& rhs)                                         \
+        {                                                                                        \
+            lambda_validator(rhs);                                                               \
+            return base_type::operator=(std::forward<V>(rhs));                                   \
+        }                                                                                        \
                                                                                                  \
         static inline const std::string& name() noexcept                                         \
         {                                                                                        \
@@ -121,16 +133,19 @@ namespace xp
     } D;
 
     #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
-    XPROPERTY_DEFAULT(T, O, D, T())
+    XPROPERTY_GENERAL(T, O, D, T(), xtl::identity())
 
-    #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, NAME, ...) NAME
+    #define XPROPERTY_DEFAULT(T, O, D, V)                                                        \
+    XPROPERTY_GENERAL(T, O, D, V, xtl::identity())
+
+    #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, _5, NAME, ...) NAME
 
     #ifdef _MSC_VER
     // Workaround for MSVC not expanding macros
     #define XPROPERTY_EXPAND(x) x
-    #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
+    #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
     #else
-    #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
+    #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
     #endif
 
     /***********************
