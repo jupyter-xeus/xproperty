@@ -38,7 +38,7 @@ namespace xp
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate<decltype(O.A)>(std::function<void(const decltype(O)&, typename decltype(O.A)::value_type&)>(C));
+    O.validate<decltype(O.A)>(std::function<void(const decltype(O)&, typename xvalidation_type_t<typename decltype(O.A)::value_type>&)>(C));
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
@@ -64,6 +64,15 @@ namespace xp
     /*************************
      * xobserved declaration *
      *************************/
+
+    template <class T>
+    struct xvalidation_type
+    {
+        using type = std::decay_t<T>;
+    };
+
+    template <class T>
+    using xvalidation_type_t = typename xvalidation_type<T>::type;
 
     template <class D>
     class xobserved
@@ -207,8 +216,8 @@ namespace xp
     template <class P, class V>
     inline auto xobserved<D>::invoke_validators(V&& v) const
     {
-        using value_type = typename P::value_type;
-        value_type value(std::forward<V>(v));
+        using validation_type = xvalidation_type_t<typename P::value_type>;
+        validation_type value(std::forward<V>(v));
 
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
@@ -217,7 +226,7 @@ namespace xp
             const auto& callbacks = position->second;
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                xtl::any_cast<std::function<void(const derived_type&, value_type&)>>(*it)(derived_cast(), value);
+                xtl::any_cast<std::function<void(const derived_type&, validation_type&)>>(*it)(derived_cast(), value);
             }
         }
 
