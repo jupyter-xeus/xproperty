@@ -104,3 +104,18 @@ TEST(xproperty, string_conversion)
     str.name = "test";
 }
 
+struct Ro
+{
+    MAKE_OBSERVED()
+
+    XPROPERTY(double, Ro, bin, 1.0, [](double& i) { if (i < 0.0) i = 0.0; });
+};
+
+TEST(xproperty, lambda_validation)
+{
+    Ro ro;
+    ASSERT_EQ(1.0, ro.bin());
+    ro.bin = -1.0;
+    ASSERT_EQ(0.0, ro.bin());
+}
+
