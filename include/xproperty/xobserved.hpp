@@ -81,8 +81,8 @@ namespace xp
         template <class P>
         void unobserve();
 
-        template <class P, class V>
-        void validate(std::function<void(const derived_type&, V&)>);
+        template <class P>
+        void validate(std::function<void(const derived_type&, typename P::value_type&)>);
 
         template <class P>
         void unvalidate();
@@ -159,8 +159,8 @@ namespace xp
     }
 
     template <class D>
-    template <class P, class V>
-    inline void xobserved<D>::validate(std::function<void(const derived_type&, V&)> cb)
+    template <class P>
+    inline void xobserved<D>::validate(std::function<void(const derived_type&, typename P::value_type&)> cb)
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
