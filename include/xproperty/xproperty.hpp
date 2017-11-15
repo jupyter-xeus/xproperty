@@ -13,8 +13,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "xtl/xfunctional.hpp"
-
 namespace xp
 {
 
@@ -111,7 +109,7 @@ namespace xp
         template <class V>                                                                       \
         typename base_type::reference operator=(V&& rhs)                                         \
         {                                                                                        \
-            lambda_validator(rhs);                                                               \
+            lambda_validator(rhs, *this);                                                        \
             return base_type::operator=(std::forward<V>(rhs));                                   \
         }                                                                                        \
                                                                                                  \
@@ -133,10 +131,10 @@ namespace xp
     } D;
 
     #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
-    XPROPERTY_GENERAL(T, O, D, T(), xtl::identity())
+    XPROPERTY_GENERAL(T, O, D, T(), [](auto&, auto&) {})
 
     #define XPROPERTY_DEFAULT(T, O, D, V)                                                        \
-    XPROPERTY_GENERAL(T, O, D, V, xtl::identity())
+    XPROPERTY_GENERAL(T, O, D, V, [](auto&, auto&) {})
 
     #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, _5, NAME, ...) NAME
 
