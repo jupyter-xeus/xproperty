@@ -27,12 +27,12 @@ TEST(xobserved, basic)
     xp::reset_counter();
     Observed foo;
 
-    XOBSERVE(foo, bar, []() {
+    XOBSERVE(foo, bar, [](Observed&) {
         ++xp::get_observe_count();
     });
 
     // Validator refusing negative values
-    XVALIDATE(foo, bar, [](double& proposal) {
+    XVALIDATE(foo, bar, [](Observed&, double& proposal) {
         ++xp::get_validate_count();
         if (proposal < 0.0)
         {
@@ -56,7 +56,7 @@ TEST(xobserved, basic)
     ASSERT_EQ(2, xp::get_validate_count());
 
     // validator coercing values to be non-positive
-    XVALIDATE(foo, bar, [](double& proposal) {
+    XVALIDATE(foo, bar, [](Observed&, double& proposal) {
         ++xp::get_validate_count();
         if (proposal > 0)
         {
@@ -86,7 +86,7 @@ TEST(xobserved, value_semantic)
 {
     Observed foo1, foo2;
 
-    XOBSERVE(foo1, bar, []() {
+    XOBSERVE(foo1, bar, [](Observed&) {
         ++xp::get_observe_count();
     });
 

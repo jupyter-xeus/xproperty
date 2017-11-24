@@ -8,12 +8,13 @@
 
 #include "gtest/gtest.h"
 
-#include "test_utils.hpp"
-#include "xproperty/xobserved.hpp"
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+
+#include "test_utils.hpp"
+#include "xproperty/xobserved.hpp"
 
 struct Foo
 {
