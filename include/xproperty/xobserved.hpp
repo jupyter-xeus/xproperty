@@ -38,7 +38,7 @@ namespace xp
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate<decltype(O.A)>(std::function<void(typename decltype(O.A)::value_type&)>(C));
+    O.validate<decltype(O.A)>(std::function<void(decltype(O)&, typename decltype(O.A)::value_type&)>(C));
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
@@ -51,7 +51,7 @@ namespace xp
 
     #define XDLINK(S, SA, T, TA)                                                   \
     T.TA = S.SA;                                                                   \
-    S.observe<decltype(S.SA)>([&S, &T]() { T.TA = S.SA; });
+    S.observe<decltype(S.SA)>([&S, &T](auto&) { T.TA = S.SA; });
 
     // XLINK(Source, AttributeName, Target, AttributeName)
     // Bidirectional link between attributes of two xobserved objects.
@@ -76,13 +76,13 @@ namespace xp
         const derived_type& derived_cast() const noexcept;
 
         template <class P>
-        void observe(std::function<void()>);
+        void observe(std::function<void(derived_type&)>);
 
         template <class P>
         void unobserve();
 
         template <class P>
-        void validate(std::function<void(typename P::value_type&)>);
+        void validate(std::function<void(derived_type&, typename P::value_type&)>);
 
         template <class P>
         void unvalidate();
@@ -100,20 +100,20 @@ namespace xp
 
     private:
 
-        std::unordered_map<std::size_t, std::vector<std::function<void()>>> m_observers;
+        std::unordered_map<std::size_t, std::vector<std::function<void(derived_type&)>>> m_observers;
         std::unordered_map<std::size_t, std::vector<xtl::any>> m_validators;
 
         template <class X, class Y, class Z>
         friend class xproperty;
 
         template <class P>
-        void notify(const P&) const;
+        void notify(const P&);
 
         template <class P>
-        void invoke_observers() const;
+        void invoke_observers();
 
         template <class P, class V>
-        auto invoke_validators(V&& r) const;
+        auto invoke_validators(V&& r);
     };
 
     template <class E>
@@ -137,7 +137,7 @@ namespace xp
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::observe(std::function<void()> cb)
+    inline void xobserved<D>::observe(std::function<void(derived_type&)> cb)
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_observers.find(offset);
@@ -160,7 +160,7 @@ namespace xp
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::validate(std::function<void(typename P::value_type&)> cb)
+    inline void xobserved<D>::validate(std::function<void(derived_type&, typename P::value_type&)> cb)
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
@@ -183,13 +183,13 @@ namespace xp
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::notify(const P&) const
+    inline void xobserved<D>::notify(const P&)
     {
     }
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::invoke_observers() const
+    inline void xobserved<D>::invoke_observers()
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_observers.find(offset);
@@ -198,14 +198,14 @@ namespace xp
             const auto& callbacks = position->second;
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                it->operator()();
+                it->operator()(derived_cast());
             }
         }
     }
 
     template <class D>
     template <class P, class V>
-    inline auto xobserved<D>::invoke_validators(V&& v) const
+    inline auto xobserved<D>::invoke_validators(V&& v)
     {
         using value_type = typename P::value_type;
         value_type value(std::forward<V>(v));
@@ -217,7 +217,7 @@ namespace xp
             const auto& callbacks = position->second;
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                xtl::any_cast<std::function<void(value_type&)>>(*it)(value);
+                xtl::any_cast<std::function<void(derived_type&, value_type&)>>(*it)(derived_cast(), value);
             }
         }
 
