@@ -38,7 +38,7 @@ namespace xp
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate<decltype(O.A)>(std::function<void(const decltype(O)&, typename decltype(O.A)::value_type&)>(C));
+    O.validate<decltype(O.A)>(std::function<void(typename decltype(O.A)::value_type&)>(C));
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
@@ -51,7 +51,7 @@ namespace xp
 
     #define XDLINK(S, SA, T, TA)                                                   \
     T.TA = S.SA;                                                                   \
-    S.observe<decltype(S.SA)>([&S, &T](const auto&) { T.TA = S.SA; });
+    S.observe<decltype(S.SA)>([&S, &T]() { T.TA = S.SA; });
 
     // XLINK(Source, AttributeName, Target, AttributeName)
     // Bidirectional link between attributes of two xobserved objects.
@@ -76,13 +76,13 @@ namespace xp
         const derived_type& derived_cast() const noexcept;
 
         template <class P>
-        void observe(std::function<void(const derived_type&)>);
+        void observe(std::function<void()>);
 
         template <class P>
         void unobserve();
 
         template <class P>
-        void validate(std::function<void(const derived_type&, typename P::value_type&)>);
+        void validate(std::function<void(typename P::value_type&)>);
 
         template <class P>
         void unvalidate();
@@ -100,7 +100,7 @@ namespace xp
 
     private:
 
-        std::unordered_map<std::size_t, std::vector<std::function<void(const derived_type&)>>> m_observers;
+        std::unordered_map<std::size_t, std::vector<std::function<void()>>> m_observers;
         std::unordered_map<std::size_t, std::vector<xtl::any>> m_validators;
 
         template <class X, class Y, class Z>
@@ -137,7 +137,7 @@ namespace xp
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::observe(std::function<void(const derived_type&)> cb)
+    inline void xobserved<D>::observe(std::function<void()> cb)
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_observers.find(offset);
@@ -160,7 +160,7 @@ namespace xp
 
     template <class D>
     template <class P>
-    inline void xobserved<D>::validate(std::function<void(const derived_type&, typename P::value_type&)> cb)
+    inline void xobserved<D>::validate(std::function<void(typename P::value_type&)> cb)
     {
         constexpr std::size_t offset = P::offset();
         auto position = m_validators.find(offset);
@@ -198,7 +198,7 @@ namespace xp
             const auto& callbacks = position->second;
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                it->operator()(derived_cast());
+                it->operator()();
             }
         }
     }
@@ -217,7 +217,7 @@ namespace xp
             const auto& callbacks = position->second;
             for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
             {
-                xtl::any_cast<std::function<void(const derived_type&, value_type&)>>(*it)(derived_cast(), value);
+                xtl::any_cast<std::function<void(value_type&)>>(*it)(value);
             }
         }
 
