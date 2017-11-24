@@ -8,12 +8,12 @@
 
 #include "gtest/gtest.h"
 
+#include "test_utils.hpp"
+#include "xproperty/xobserved.hpp"
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include "test_utils.hpp"
-#include "xproperty/xobserved.hpp"
 
 struct Foo
 {
@@ -118,4 +118,3 @@ TEST(xproperty, lambda_validation)
     ro.bin = -1.0;
     ASSERT_EQ(0.0, ro.bin());
 }
-

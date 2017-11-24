@@ -33,13 +33,11 @@ Registering an observer and a validator
 
     Foo foo;
 
-    XOBSERVE(foo, bar, [](const Foo& f) 
-    {
-        std::cout << "Observer: New value of bar: " << f.bar << std::endl;
+    XOBSERVE(foo, bar, [&]() {
+        std::cout << "Observer: New value of bar: " << foo.bar << std::endl;
     });
 
-    XVALIDATE(foo, bar, [](const Foo&, double proposal) 
-    {
+    XVALIDATE(foo, bar, [](double& proposal) {
         std::cout << "Validator: Proposal: " << proposal << std::endl;
         if (proposal < 0)
         {

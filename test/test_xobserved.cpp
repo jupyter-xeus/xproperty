@@ -8,8 +8,8 @@
 
 #include "gtest/gtest.h"
 
-#include <iostream>
 #include <cstddef>
+#include <iostream>
 #include <stdexcept>
 
 #include "test_utils.hpp"
@@ -27,14 +27,12 @@ TEST(xobserved, basic)
     xp::reset_counter();
     Observed foo;
 
-    XOBSERVE(foo, bar, [](const Observed&) 
-    {
+    XOBSERVE(foo, bar, []() {
         ++xp::get_observe_count();
     });
 
     // Validator refusing negative values
-    XVALIDATE(foo, bar, [](const Observed&, double& proposal) 
-    {
+    XVALIDATE(foo, bar, [](double& proposal) {
         ++xp::get_validate_count();
         if (proposal < 0.0)
         {
@@ -50,23 +48,22 @@ TEST(xobserved, basic)
     ASSERT_EQ(1.0, double(foo.bar));
     ASSERT_EQ(1, xp::get_observe_count());
     ASSERT_EQ(2, xp::get_validate_count());
-    
+
     XUNVALIDATE(foo, bar);
     foo.bar = -1.0;
     ASSERT_EQ(-1.0, double(foo.bar));
     ASSERT_EQ(2, xp::get_observe_count());
     ASSERT_EQ(2, xp::get_validate_count());
-    
+
     // validator coercing values to be non-positive
-    XVALIDATE(foo, bar, [](const Observed&, double& proposal) 
-    {
+    XVALIDATE(foo, bar, [](double& proposal) {
         ++xp::get_validate_count();
         if (proposal > 0)
         {
             proposal = 0.0;
         }
     });
-    
+
     foo.bar = 1.0;
     ASSERT_EQ(0.0, double(foo.bar));
     ASSERT_EQ(3, xp::get_observe_count());
@@ -89,8 +86,7 @@ TEST(xobserved, value_semantic)
 {
     Observed foo1, foo2;
 
-    XOBSERVE(foo1, bar, [](const Observed&) 
-    {
+    XOBSERVE(foo1, bar, []() {
         ++xp::get_observe_count();
     });
 
@@ -103,4 +99,3 @@ TEST(xobserved, value_semantic)
     ASSERT_EQ(double(foo2.bar), double(foo1.bar));
     ASSERT_EQ(0, xp::get_observe_count());
 }
-
