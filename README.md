@@ -36,6 +36,7 @@ of callbacks that can be registered dynamically.
 | `xproperty` | `xtl`  |
 |-------------|--------|
 |   master    | ^0.4.0 |
+|   0.7.0     | ^0.4.0 |
 |   0.6.0     | ^0.3.5 |
 
 ## Usage
