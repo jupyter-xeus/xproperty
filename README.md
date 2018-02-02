@@ -28,6 +28,16 @@ of callbacks that can be registered dynamically.
 - On Windows platforms, Visual C++ 2015 Update 2, or more recent
 - On Unix platforms, gcc 4.9 or a recent version of Clang
 
+
+## Dependencies
+
+`xproperty` depends on the [xtl](https://github.com/QuantStack/xtl) library.
+
+| `xproperty` | `xtl`  |
+|-------------|--------|
+|   master    | ^0.4.0 |
+|   0.6.0     | ^0.3.5 |
+
 ## Usage
 
 - Declaring an observed object `Foo` with two properties named `bar` and `baz` of type `double`.
