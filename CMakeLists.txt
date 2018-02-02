@@ -21,10 +21,15 @@ foreach(ver ${xproperty_version_defines})
         set(XPROPERTY_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE INTERNAL "")
     endif()
 endforeach()
-set(${PROJECT_NAME}_VERSION 
+set(${PROJECT_NAME}_VERSION
     ${XPROPERTY_VERSION_MAJOR}.${XPROPERTY_VERSION_MINOR}.${XPROPERTY_VERSION_PATCH})
 message(STATUS "xproperty v${${PROJECT_NAME}_VERSION}")
 
+# Dependencies
+# ============
+
+find_package(xtl 0.4 REQUIRED)
+message(STATUS "Found xtl: ${xtl_INCLUDE_DIRS}/xtl")
 
 # Build
 # =====
@@ -35,8 +40,12 @@ set(XPROPERTY_HEADERS
     ${XPROPERTY_INCLUDE_DIR}/xproperty/xproperty_config.hpp
 )
 
+add_library(xproperty INTERFACE)
+target_include_directories(xproperty INTERFACE $<BUILD_INTERFACE:${XPROPERTY_INCLUDE_DIR}>
+                                               $<INSTALL_INTERFACE:include>)
+target_link_libraries(xproperty INTERFACE xtl)
 
-OPTION(BUILD_TESTS "xpropeperty test suite" OFF)
+OPTION(BUILD_TESTS "xproperty test suite" OFF)
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
@@ -52,6 +61,13 @@ endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+install(TARGETS xproperty
+        EXPORT ${PROJECT_NAME}-targets)
+
+# Makes the project importable from the build directory
+export(EXPORT ${PROJECT_NAME}-targets
+       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 install(FILES ${XPROPERTY_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xproperty)
@@ -73,5 +89,8 @@ write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Conf
 set(CMAKE_SIZEOF_VOID_P ${_XPROPERTY_CMAKE_SIZEOF_VOID_P})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION ${XPROPERTY_CMAKECONFIG_INSTALL_DIR})
+install(EXPORT ${PROJECT_NAME}-targets
+        FILE ${PROJECT_NAME}Targets.cmake
         DESTINATION ${XPROPERTY_CMAKECONFIG_INSTALL_DIR})
 
