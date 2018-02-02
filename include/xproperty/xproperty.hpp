@@ -26,13 +26,18 @@ namespace xp
         #define xoffsetof(O, M)                                    \
         _Pragma("clang diagnostic push")                           \
         _Pragma("clang diagnostic ignored \"-Winvalid-offsetof\"") \
-        offsetof(O, M)                                             \
+        __builtin_offsetof(O, M)                                   \
         _Pragma("clang diagnostic pop")
     #else
         #ifdef __GNUC__
             #pragma GCC diagnostic ignored "-Winvalid-offsetof"
         #endif
         #define xoffsetof(O, M) offsetof(O, M)
+    #endif
+
+    #ifdef _MSC_VER
+        #undef min
+        #undef max
     #endif
 
     /*************************
