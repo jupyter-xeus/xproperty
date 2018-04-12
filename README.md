@@ -63,12 +63,12 @@ Registering an observer and a validator
 ```cpp
 Foo foo;
 
-XOBSERVE(foo, bar, [](const Foo& f) 
+XOBSERVE(foo, bar, [](Foo& f)
 {
     std::cout << "Observer: New value of bar: " << f.bar << std::endl;
 });
 
-XVALIDATE(foo, bar, [](const Foo&, double proposal) 
+XVALIDATE(foo, bar, [](Foo&, double& proposal)
 {
     std::cout << "Validator: Proposal: " << proposal << std::endl;
     if (proposal < 0)
@@ -152,7 +152,7 @@ While doxygen must be installed separately, you can install breathe by typing
 
 ```bash
 pip install breathe
-``` 
+```
 
 Breathe can also be installed with `conda`
 
