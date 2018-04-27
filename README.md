@@ -28,6 +28,26 @@ of callbacks that can be registered dynamically.
 - On Windows platforms, Visual C++ 2015 Update 2, or more recent
 - On Unix platforms, gcc 4.9 or a recent version of Clang
 
+## Installation
+
+`xproperty` is a header-only library. We provide a package for the conda package manager.
+
+```bash
+conda install -c conda-forge xproperty
+```
+
+Or you can directly install it from the sources:
+
+```bash
+cmake -DCMAKE_INSTALL_PREFIX=your_install_prefix
+make install
+```
+
+## Documentation
+
+To get started with using `xproperty`, check out the full documentation
+
+http://xproperty.readthedocs.io/
 
 ## Dependencies
 
