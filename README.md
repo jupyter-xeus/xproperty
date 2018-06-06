@@ -1,4 +1,4 @@
-# ![xproperty](http://quantstack.net/assets/images/xproperty.svg)
+# ![xproperty](docs/source/xproperty.svg)
 
 [![Travis](https://travis-ci.org/QuantStack/xproperty.svg?branch=master)](https://travis-ci.org/QuantStack/xproperty)
 [![Appveyor](https://ci.appveyor.com/api/projects/status/vy9ej33iauvf1r8c?svg=true)](https://ci.appveyor.com/project/QuantStack/xproperty)
