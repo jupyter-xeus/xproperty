@@ -72,12 +72,8 @@ namespace xp
         reference operator()() noexcept;
         const_reference operator()() const noexcept;
 
-        xp_owner_type operator()(value_type& arg) && noexcept;
-        xp_owner_type operator()(const value_type& arg) && noexcept;
-        xp_owner_type operator()(value_type&& arg) && noexcept;
-
-        template <class Arg1, class Arg2, class... Args>
-        xp_owner_type operator()(Arg1&& arg1, Arg2&& arg2, Args&&... args) && noexcept;
+        template <class Arg, class... Args>
+        xp_owner_type operator()(Arg&& arg, Args&&... args) && noexcept;
 
         template <class V>
         reference operator=(V&& value);
@@ -262,33 +258,11 @@ namespace xp
         return m_value;
     }
 
-
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::operator()(value_type& arg) && noexcept -> xp_owner_type
+    template <class Arg, class... Args>
+    inline auto xproperty<T, O, D>::operator()(Arg&& arg, Args&&... args) && noexcept -> xp_owner_type
     {
-        m_value = arg;
-        return std::move(*owner());
-    }
-
-    template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::operator()(const value_type& arg) && noexcept -> xp_owner_type
-    {
-        m_value = arg;
-        return std::move(*owner());
-    }
-
-    template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::operator()(value_type&& arg) && noexcept -> xp_owner_type
-    {
-        m_value = std::move(arg);
-        return std::move(*owner());
-    }
-
-    template <class T, class O, class D>
-    template <class Arg1, class Arg2, class... Args>
-    inline auto xproperty<T, O, D>::operator()(Arg1&& arg1, Arg2&& arg2, Args&&... args) && noexcept -> xp_owner_type
-    {
-        m_value = value_type(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Args>(args)...);
+        m_value = value_type(std::forward<Arg>(arg), std::forward<Args>(args)...);
         return std::move(*owner());
     }
 
