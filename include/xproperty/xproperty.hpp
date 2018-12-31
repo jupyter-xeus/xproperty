@@ -79,7 +79,6 @@ namespace xp
         template <class Arg1, class Arg2, class... Args>
         xp_owner_type operator()(Arg1&& arg1, Arg2&& arg2, Args&&... args) && noexcept;
 
-
         reference operator=(value_type& value);
         reference operator=(const value_type& value);
         reference operator=(value_type&& value);
@@ -129,10 +128,9 @@ namespace xp
             return base_type::operator=(std::forward<V>(rhs));                                   \
         }                                                                                        \
                                                                                                  \
-        static inline const std::string& name() noexcept                                         \
+        static inline constexpr const char* name() noexcept                                      \
         {                                                                                        \
-            static const std::string name = #D;                                                  \
-            return name;                                                                         \
+            return #D;                                                                           \
         }                                                                                        \
                                                                                                  \
         static inline constexpr std::size_t offset() noexcept                                    \
@@ -140,7 +138,7 @@ namespace xp
             return xoffsetof(O, D);                                                              \
         }                                                                                        \
                                                                                                  \
-        static inline T default_value()                                                          \
+        static inline T default_value() noexcept                                       \
         {                                                                                        \
             return T(value);                                                                     \
         }                                                                                        \
