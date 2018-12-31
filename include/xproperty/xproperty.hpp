@@ -54,17 +54,15 @@ namespace xp
         using xp_owner_type = O;
         using xp_derived_type = D;
 
-        xp_derived_type& derived_cast() & noexcept;
         const xp_derived_type& derived_cast() const & noexcept;
-        xp_derived_type derived_cast() && noexcept;
 
         using value_type = T;
         using reference = T&;
         using const_reference = const T&;
 
         constexpr xproperty() noexcept(noexcept(std::is_nothrow_constructible<value_type>::value));
-        constexpr xproperty(const_reference value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value));
-        constexpr xproperty(value_type&& value) noexcept(noexcept(std::is_nothrow_move_constructible<value_type>::value));
+        template <class V>
+        constexpr xproperty(V&& value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value));
 
         operator reference() noexcept;
         operator const_reference() const noexcept;
@@ -75,8 +73,10 @@ namespace xp
         template <class Arg, class... Args>
         xp_owner_type operator()(Arg&& arg, Args&&... args) && noexcept;
 
+    protected:
+
         template <class V>
-        reference operator=(V&& value);
+        reference assign(V&& value);
 
     private:
 
@@ -106,18 +106,19 @@ namespace xp
     // The `T` typename is a universal reference on the proposed value.
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
 
-    #define XPROPERTY_GENERAL(T, O, D, value, lambda_validator)                                  \
+    #define XPROPERTY_GENERAL(T, O, D, DEFAULT_VALUE, lambda_validator)                          \
     class D##_property : public ::xp::xproperty<T, O, D##_property>                              \
     {                                                                                            \
     public:                                                                                      \
                                                                                                  \
         using base_type = ::xp::xproperty<T, O, D##_property>;                                   \
+        using base_type::base_type;                                                              \
                                                                                                  \
         template <class V>                                                                       \
         typename base_type::reference operator=(V&& rhs)                                         \
         {                                                                                        \
             lambda_validator(rhs);                                                               \
-            return base_type::operator=(std::forward<V>(rhs));                                   \
+            return base_type::assign(std::forward<V>(rhs));                                      \
         }                                                                                        \
                                                                                                  \
         static inline constexpr const char* name() noexcept                                      \
@@ -130,11 +131,7 @@ namespace xp
             return xoffsetof(O, D);                                                              \
         }                                                                                        \
                                                                                                  \
-        static inline T default_value() noexcept                                       \
-        {                                                                                        \
-            return T(value);                                                                     \
-        }                                                                                        \
-    } D;
+    } D = DEFAULT_VALUE;
 
     #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
     XPROPERTY_GENERAL(T, O, D, T(), xtl::identity())
@@ -199,38 +196,21 @@ namespace xp
      ****************************/
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::derived_cast() & noexcept -> xp_derived_type&
-    {
-        return *static_cast<xp_derived_type*>(this);
-    }
-
-    template <class T, class O, class D>
     inline auto xproperty<T, O, D>::derived_cast() const & noexcept -> const xp_derived_type&
     {
         return *static_cast<const xp_derived_type*>(this);
     }
 
     template <class T, class O, class D>
-    inline auto xproperty<T, O, D>::derived_cast() && noexcept -> xp_derived_type
-    {
-        return *static_cast<xp_derived_type*>(this);
-    }
-
-    template <class T, class O, class D>
     inline constexpr xproperty<T, O, D>::xproperty() noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_value(D::default_value())
+        : m_value()
     {
     }
 
     template <class T, class O, class D>
-    inline constexpr xproperty<T, O, D>::xproperty(value_type&& value) noexcept(noexcept(std::is_nothrow_move_constructible<value_type>::value))
-        : m_value(value)
-    {
-    }
-
-    template <class T, class O, class D>
-    inline constexpr xproperty<T, O, D>::xproperty(const_reference value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_value(value)
+    template <class V>
+    inline constexpr xproperty<T, O, D>::xproperty(V&& value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
+        : m_value(std::forward<V>(value))
     {
     }
 
@@ -268,7 +248,7 @@ namespace xp
 
     template <class T, class O, class D>
     template <class V>
-    inline auto xproperty<T, O, D>::operator=(V&& value) -> reference
+    inline auto xproperty<T, O, D>::assign(V&& value) -> reference
     {
         m_value = owner()->template invoke_validators<xp_derived_type>(std::forward<V>(value));
         owner()->notify(derived_cast());
