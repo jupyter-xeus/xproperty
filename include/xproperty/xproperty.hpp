@@ -134,7 +134,7 @@ namespace xp
             return xoffsetof(O, D);                                                              \
         }                                                                                        \
                                                                                                  \
-    } D = DEFAULT_VALUE;
+    } D = T(DEFAULT_VALUE);
 
     #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
     XPROPERTY_GENERAL(T, O, D, T(), xtl::identity())

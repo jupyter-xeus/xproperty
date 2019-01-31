@@ -22,6 +22,7 @@ struct Foo
 
     XPROPERTY(double, Foo, bar);
     XPROPERTY(double, Foo, baz);
+    XPROPERTY(std::vector<std::string>, Foo, boz, {"Test"});
 };
 
 XVALIDATE_STATIC(double, Foo, bar, proposal)
