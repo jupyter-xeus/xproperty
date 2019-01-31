@@ -111,9 +111,9 @@ install:
     # Useful for debugging any issues with conda
     - conda info -a
     - cd test
-    - conda install xtl==0.5.0 cmake gtest -c conda-forge
+    - conda install xtl==0.5.3 cmake -c conda-forge
     - cd ..
-    - cmake -DBUILD_TESTS=ON .
+    - cmake -DDOWNLOAD_GTEST=ON .
     - make -j2 test_xproperty
     - cd test
 script:
