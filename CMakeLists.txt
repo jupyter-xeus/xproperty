@@ -28,7 +28,7 @@ message(STATUS "xproperty v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-find_package(xtl 0.4 REQUIRED)
+find_package(xtl 0.5.3 REQUIRED)
 message(STATUS "Found xtl: ${xtl_INCLUDE_DIRS}/xtl")
 
 # Build
