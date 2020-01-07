@@ -25,21 +25,6 @@ struct Foo
     XPROPERTY(std::vector<std::string>, Foo, boz, {"Test"});
 };
 
-XVALIDATE_STATIC(double, Foo, bar, proposal)
-{
-    ++xp::get_validate_count();
-    if (proposal < 0.0)
-    {
-        throw std::runtime_error("Only non-negative values are valid.");
-    }
-    return proposal;
-}
-
-XOBSERVE_STATIC(double, Foo, bar)
-{
-    ++xp::get_observe_count();
-};
-
 TEST(xproperty, basic)
 {
     xp::reset_counter();
