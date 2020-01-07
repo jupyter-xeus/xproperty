@@ -54,11 +54,16 @@ namespace xp
         template <class V>
         reference operator=(V&&);
 
+    protected:
+
+        template <class V>
+        reference assign(V&& value);
+
     private:
 
         xp_owner_type* owner() noexcept;
 
-        xp_owner_type* m_owner;
+        std::ptrdiff_t m_offset;
         std::string m_name;
         value_type m_value;
     };
@@ -82,13 +87,11 @@ namespace xp
     // The `T` typename is a universal reference on the proposed value.
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
 
-    // lambda_validator(rhs);                                                           
-
     #define XPROPERTY_GENERAL(T, O, D, DEFAULT_VALUE, lambda_validator)                          \
     ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>((O*)this, #D, T(DEFAULT_VALUE));
 
     #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
-    XPROPERTY_GENERAL(T, O, D, T(), xtl::identity())
+    ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>((O*)this, #D, T());
 
     #define XPROPERTY_DEFAULT(T, O, D, V)                                                        \
     XPROPERTY_GENERAL(T, O, D, V, xtl::identity())
@@ -126,14 +129,14 @@ namespace xp
 
     template <class T, class O>
     inline constexpr xproperty<T, O>::xproperty(xp_owner_type* owner, const std::string& name) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_owner(owner), m_name(name), m_value()
+        : m_offset((char*)this - (char*)owner), m_name(name), m_value()
     {
     }
 
     template <class T, class O>
     template <class V>
     inline constexpr xproperty<T, O>::xproperty(xp_owner_type* owner, const std::string& name, V&& value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_owner(owner), m_name(name), m_value(std::forward<V>(value))
+        : m_offset((char*)this - (char*)owner), m_name(name), m_value(std::forward<V>(value))
     {
     }
 
@@ -194,6 +197,13 @@ namespace xp
     inline auto xproperty<T, O>::operator=(V&& value) -> reference
     {
         // lambda_validator(rhs);
+        return this->assign(std::forward<V>(value));
+    }
+
+    template <class T, class O>
+    template <class V>
+    inline auto xproperty<T, O>::assign(V&& value) -> reference
+    {
         m_value = owner()->template invoke_validators<xproperty<T, O>>(m_name, std::forward<V>(value));
         owner()->notify(*this);
         owner()->invoke_observers(m_name);
@@ -203,7 +213,7 @@ namespace xp
     template <class T, class O>
     inline auto xproperty<T, O>::owner() noexcept -> xp_owner_type*
     {
-        return m_owner;
+        return (xp_owner_type*)((char*)this - m_offset);
     }
 }
 
