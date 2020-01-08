@@ -21,7 +21,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install gtest cmake xtl==0.6.1 -c conda-forge
+  - conda install gtest cmake xtl==0.6.11 -c conda-forge
   - cmake -G "NMake Makefiles" -D BUILD_TESTS=ON -D CMAKE_INSTALL_PREFIX=%MINICONDA%\\LIBRARY -D CMAKE_BUILD_TYPE=Release .
   - nmake test_xproperty
   - cd test
