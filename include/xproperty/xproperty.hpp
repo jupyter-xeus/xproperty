@@ -17,11 +17,14 @@
 
 namespace xp
 {
+
+    #define XP_NOEXCEPT(V) noexcept(noexcept((std::is_nothrow_constructible<V>::value)))
+
     /*************************
      * xproperty declaration *
      *************************/
 
-    // Type, Owner Type, Derived Type
+    // Type, Owner Type
 
     template <class T, class O>
     class xproperty
@@ -33,9 +36,12 @@ namespace xp
         using reference = T&;
         using const_reference = const T&;
 
-        constexpr xproperty(xp_owner_type* owner, const std::string& name) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value));
+        xproperty(xp_owner_type* owner, const std::string& name) XP_NOEXCEPT(value_type);
         template <class V>
-        constexpr xproperty(xp_owner_type* owner, const std::string& name, V&& value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value));
+        xproperty(xp_owner_type* owner, const std::string& name, V&& value) XP_NOEXCEPT(value_type);
+        template <class V, class LV>
+        xproperty(xp_owner_type* owner, const std::string& name, V&& value, LV&& lambda_validator) XP_NOEXCEPT(value_type);
+
 
         operator reference() noexcept;
         operator const_reference() const noexcept;
@@ -87,14 +93,14 @@ namespace xp
     // The `T` typename is a universal reference on the proposed value.
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
 
-    #define XPROPERTY_GENERAL(T, O, D, DEFAULT_VALUE, lambda_validator)                          \
-    ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>((O*)this, #D, T(DEFAULT_VALUE));
+    #define XPROPERTY_GENERAL(T, O, D, DEFAULT_VALUE, lambda_validator)                                  \
+    ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>(static_cast<O*>(this), #D, T(DEFAULT_VALUE), lambda_validator);
 
-    #define XPROPERTY_NODEFAULT(T, O, D)                                                         \
-    ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>((O*)this, #D, T());
+    #define XPROPERTY_NODEFAULT(T, O, D)                                                                 \
+    ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>(static_cast<O*>(this), #D, T());
 
-    #define XPROPERTY_DEFAULT(T, O, D, V)                                                        \
-    XPROPERTY_GENERAL(T, O, D, V, xtl::identity())
+    #define XPROPERTY_DEFAULT(T, O, D, V)                                                                \
+    ::xp::xproperty<T, O> D = ::xp::xproperty<T, O>(static_cast<O*>(this), #D, T(V));
 
     #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, _5, NAME, ...) NAME
 
@@ -106,40 +112,42 @@ namespace xp
     #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
     #endif
 
-    /***********************
-     * MAKE_OBSERVED macro *
-     ***********************/
-
-    // MAKE_OBSERVED()
-    //
-    // Adds the required boilerplate for an obsered structure.
-
-    #define MAKE_OBSERVED()                                                                 \
-    template <class P>                                                                      \
-    inline void notify(const P&) const {}                                                   \
-                                                                                            \
-    inline void invoke_observers(const std::string&) const {}                               \
-                                                                                            \
-    template <class P, class V>                                                             \
-    inline auto invoke_validators(const std::string&, V&& r) const { return r; }
-
     /****************************
      * xproperty implementation *
      ****************************/
 
     template <class T, class O>
-    inline constexpr xproperty<T, O>::xproperty(xp_owner_type* owner, const std::string& name) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_offset((char*)this - (char*)owner), m_name(name), m_value()
+    inline xproperty<T, O>::xproperty(xp_owner_type* owner,
+                                      const std::string& name) XP_NOEXCEPT(value_type)
+        : xproperty(owner, name, value_type())
     {
     }
 
     template <class T, class O>
     template <class V>
-    inline constexpr xproperty<T, O>::xproperty(xp_owner_type* owner, const std::string& name, V&& value) noexcept(noexcept(std::is_nothrow_constructible<value_type>::value))
-        : m_offset((char*)this - (char*)owner), m_name(name), m_value(std::forward<V>(value))
+    inline xproperty<T, O>::xproperty(xp_owner_type* owner,
+                                      const std::string& name,
+                                      V&& value) XP_NOEXCEPT(value_type)
+        : m_offset(reinterpret_cast<char*>(this) - reinterpret_cast<char*>(owner))
+        , m_name(name)
+        , m_value(std::forward<V>(value))
     {
     }
 
+    template <class T, class O>
+    template <class V, class LV>
+    inline xproperty<T, O>::xproperty(xp_owner_type* owner,
+                                      const std::string& name,
+                                      V&& value,
+                                      LV&& lambda_validator) XP_NOEXCEPT(value_type)
+        : xproperty(owner, name, std::forward<V>(value))
+    {
+        owner->validate(name, std::function<void(xp_owner_type&, value_type&)>(
+            [lambda_validator](xp_owner_type&, value_type& v)
+            { lambda_validator(v); }
+            ));
+    }
+    
     template <class T, class O>
     inline xproperty<T, O>::operator reference() noexcept
     {
@@ -213,7 +221,9 @@ namespace xp
     template <class T, class O>
     inline auto xproperty<T, O>::owner() noexcept -> xp_owner_type*
     {
-        return (xp_owner_type*)((char*)this - m_offset);
+        return reinterpret_cast<xp_owner_type*>(
+            reinterpret_cast<char*>(this) - m_offset
+        );
     }
 }
 
