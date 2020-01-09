@@ -16,67 +16,36 @@
 #include "test_utils.hpp"
 #include "xproperty/xobserved.hpp"
 
-struct Foo
+struct Foo : xp::xobserved<Foo>
 {
-    MAKE_OBSERVED()
-
     XPROPERTY(double, Foo, bar);
     XPROPERTY(double, Foo, baz);
     XPROPERTY(std::vector<std::string>, Foo, boz, {"Test"});
 };
 
-XVALIDATE_STATIC(double, Foo, bar, proposal)
-{
-    ++xp::get_validate_count();
-    if (proposal < 0.0)
-    {
-        throw std::runtime_error("Only non-negative values are valid.");
-    }
-    return proposal;
-}
-
-XOBSERVE_STATIC(double, Foo, bar)
-{
-    ++xp::get_observe_count();
-};
-
 TEST(xproperty, basic)
 {
-    xp::reset_counter();
     Foo foo;
-
     foo.bar = 1.0;
     ASSERT_EQ(1.0, double(foo.bar));
-    ASSERT_EQ(1, xp::get_observe_count());
-    ASSERT_EQ(1, xp::get_validate_count());
-    ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
-    ASSERT_EQ(1.0, double(foo.bar));
-    ASSERT_EQ(1, xp::get_observe_count());
-    ASSERT_EQ(2, xp::get_validate_count());
+    foo.bar = 2.0;
+    ASSERT_EQ(2.0, double(foo.bar));
 }
 
-struct Wrapper
+struct Wrapper : xp::xobserved<Wrapper>
 {
-    MAKE_OBSERVED()
-
     XPROPERTY(Foo, Wrapper, foo);
 };
 
 TEST(xproperty, nested)
 {
-    xp::reset_counter();
     Wrapper wrapper;
-
     wrapper.foo().bar = 1.;
     ASSERT_EQ(1.0, double(wrapper.foo().bar));
-    ASSERT_EQ(1, xp::get_observe_count());
-    ASSERT_EQ(1, xp::get_validate_count());
 }
 
-struct Bat
+struct Bat : xp::xobserved<Bat>
 {
-    MAKE_OBSERVED()
-
     XPROPERTY(double, Bat, man, 1.0);
 };
 
@@ -88,10 +57,9 @@ TEST(xproperty, default_values)
 }
 
 template <class D>
-struct str_base
+struct str_base : xp::xobserved<D>
 {
     using derived_type = D;
-    MAKE_OBSERVED()
 
     XPROPERTY(std::string, derived_type, name);
 };
@@ -106,10 +74,8 @@ TEST(xproperty, string_conversion)
     str.name = "test";
 }
 
-struct Ro
+struct Ro : xp::xobserved<Ro>
 {
-    MAKE_OBSERVED()
-
     XPROPERTY(double, Ro, bin, 1.0, [](double& i) { if (i < 0.0) i = 0.0; });
 };
 

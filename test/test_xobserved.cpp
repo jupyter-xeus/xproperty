@@ -42,18 +42,18 @@ TEST(xobserved, basic)
 
     foo.bar = 1.0;
     ASSERT_EQ(1.0, double(foo.bar));
-    ASSERT_EQ(1, xp::get_observe_count());
-    ASSERT_EQ(1, xp::get_validate_count());
+    ASSERT_EQ(size_t(1), xp::get_observe_count());
+    ASSERT_EQ(size_t(1), xp::get_validate_count());
     ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
     ASSERT_EQ(1.0, double(foo.bar));
-    ASSERT_EQ(1, xp::get_observe_count());
-    ASSERT_EQ(2, xp::get_validate_count());
+    ASSERT_EQ(size_t(1), xp::get_observe_count());
+    ASSERT_EQ(size_t(2), xp::get_validate_count());
 
     XUNVALIDATE(foo, bar);
     foo.bar = -1.0;
     ASSERT_EQ(-1.0, double(foo.bar));
-    ASSERT_EQ(2, xp::get_observe_count());
-    ASSERT_EQ(2, xp::get_validate_count());
+    ASSERT_EQ(size_t(2), xp::get_observe_count());
+    ASSERT_EQ(size_t(2), xp::get_validate_count());
 
     // validator coercing values to be non-positive
     XVALIDATE(foo, bar, [](Observed&, double& proposal) {
@@ -66,8 +66,8 @@ TEST(xobserved, basic)
 
     foo.bar = 1.0;
     ASSERT_EQ(0.0, double(foo.bar));
-    ASSERT_EQ(3, xp::get_observe_count());
-    ASSERT_EQ(3, xp::get_validate_count());
+    ASSERT_EQ(size_t(3), xp::get_observe_count());
+    ASSERT_EQ(size_t(3), xp::get_validate_count());
 }
 
 TEST(xobserved, links)
@@ -97,5 +97,5 @@ TEST(xobserved, value_semantic)
     foo1 = foo2;
 
     ASSERT_EQ(double(foo2.bar), double(foo1.bar));
-    ASSERT_EQ(0, xp::get_observe_count());
+    ASSERT_EQ(size_t(0), xp::get_observe_count());
 }
