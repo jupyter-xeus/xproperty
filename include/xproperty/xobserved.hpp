@@ -103,8 +103,8 @@ namespace xp
         template <class X, class Y>
         friend class xproperty;
 
-        template <class P>
-        void notify(const P&);
+        template <class T>
+        void notify(const std::string&, const T&);
 
         void invoke_observers(const std::string&);
 
@@ -173,8 +173,8 @@ namespace xp
     }
 
     template <class D>
-    template <class P>
-    inline void xobserved<D>::notify(const P&)
+    template <class T>
+    inline void xobserved<D>::notify(const std::string&, const T&)
     {
     }
 

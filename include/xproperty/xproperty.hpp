@@ -213,7 +213,7 @@ namespace xp
     inline auto xproperty<T, O>::assign(V&& value) -> reference
     {
         m_value = owner()->template invoke_validators<xproperty<T, O>>(m_name, std::forward<V>(value));
-        owner()->notify(*this);
+        owner()->notify(m_name, m_value);
         owner()->invoke_observers(m_name);
         return m_value;
     }
