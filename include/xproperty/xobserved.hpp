@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <functional>
 #include <type_traits>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "xtl/xany.hpp"
@@ -97,8 +97,8 @@ namespace xp
 
     private:
 
-        std::unordered_map<std::string, std::vector<std::function<void(derived_type&)>>> m_observers;
-        std::unordered_map<std::string, std::vector<xtl::any>> m_validators;
+        std::multimap<std::string, std::function<void(derived_type&)>> m_observers;
+        std::multimap<std::string, xtl::any> m_validators;
 
         template <class X, class Y>
         friend class xproperty;
@@ -134,15 +134,7 @@ namespace xp
     template <class D>
     inline void xobserved<D>::observe(const std::string& name, std::function<void(derived_type&)> cb)
     {
-        auto position = m_observers.find(name);
-        if (position == m_observers.end())
-        {
-            m_observers[name] = {std::move(cb)};
-        }
-        else
-        {
-            position->second.push_back(std::move(cb));
-        }
+        m_observers.insert(std::make_pair(name, std::move(cb)));
     }
 
     template <class D>
@@ -155,15 +147,7 @@ namespace xp
     template <class V>
     inline void xobserved<D>::validate(const std::string& name, std::function<void(derived_type&, V&)> cb)
     {
-        auto position = m_validators.find(name);
-        if (position == m_validators.end())
-        {
-            m_validators[name] = {std::move(cb)};
-        }
-        else
-        {
-            position->second.push_back(std::move(cb));
-        }
+        m_validators.insert(std::make_pair(name, std::move(cb)));
     }
 
     template <class D>
@@ -181,14 +165,10 @@ namespace xp
     template <class D>
     inline void xobserved<D>::invoke_observers(const std::string& name)
     {
-        auto position = m_observers.find(name);
-        if (position != m_observers.end())
+        auto callbacks = m_observers.equal_range(name);
+        for(auto it = callbacks.first; it != callbacks.second; ++it)
         {
-            const auto& callbacks = position->second;
-            for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
-            {
-                it->operator()(derived_cast());
-            }
+            it->second.operator()(derived_cast());
         }
     }
 
@@ -199,14 +179,10 @@ namespace xp
         using value_type = T;
         value_type value(std::forward<V>(v));
 
-        auto position = m_validators.find(name);
-        if (position != m_validators.end())
+        auto callbacks = m_validators.equal_range(name);
+        for(auto it = callbacks.first; it != callbacks.second; ++it)
         {
-            const auto& callbacks = position->second;
-            for (auto it = callbacks.cbegin(); it != callbacks.cend(); ++it)
-            {
-                xtl::any_cast<std::function<void(derived_type&, value_type&)>>(*it)(derived_cast(), value);
-            }
+            xtl::any_cast<std::function<void(derived_type&, value_type&)>>(it->second)(derived_cast(), value);
         }
 
         return value;
