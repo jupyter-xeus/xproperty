@@ -108,7 +108,7 @@ namespace xp
 
         void invoke_observers(const std::string&);
 
-        template <class P, class V>
+        template <class T, class V>
         auto invoke_validators(const std::string&, V&& r);
     };
 
@@ -193,10 +193,10 @@ namespace xp
     }
 
     template <class D>
-    template <class P, class V>
+    template <class T, class V>
     inline auto xobserved<D>::invoke_validators(const std::string& name, V&& v)
     {
-        using value_type = typename P::value_type;
+        using value_type = T;
         value_type value(std::forward<V>(v));
 
         auto position = m_validators.find(name);
