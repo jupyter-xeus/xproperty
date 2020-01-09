@@ -53,12 +53,13 @@ http://xproperty.readthedocs.io/
 
 `xproperty` depends on the [xtl](https://github.com/QuantStack/xtl) library.
 
-| `xproperty` |     `xtl`    |
-|-------------|--------------|
-|   master    | >=0.5.0,<0.7 |
-|   0.8.x     | >=0.5.0,<0.7 |
-|   0.7.x     | ^0.4.0       |
-|   0.6.x     | ^0.3.5       |
+| `xproperty` |     `xtl`     |
+|-------------|---------------|
+|   master    | >=0.6.11,<0.7 |
+|   0.9.x     | >=0.6.11,<0.7 |
+|   0.8.x     | >=0.5.0,<0.7  |
+|   0.7.x     | ^0.4.0        |
+|   0.6.x     | ^0.3.5        |
 
 ## Usage
 
