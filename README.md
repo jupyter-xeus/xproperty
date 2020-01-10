@@ -1,7 +1,7 @@
 # ![xproperty](docs/source/xproperty.svg)
 
-[![Travis](https://travis-ci.org/QuantStack/xproperty.svg?branch=master)](https://travis-ci.org/QuantStack/xproperty)
-[![Appveyor](https://ci.appveyor.com/api/projects/status/vy9ej33iauvf1r8c?svg=true)](https://ci.appveyor.com/project/QuantStack/xproperty)
+[![Travis](https://travis-ci.org/jupyter-xeus/xproperty.svg?branch=master)](https://travis-ci.org/jupyter-xeus/xproperty)
+[![Appveyor](https://ci.appveyor.com/api/projects/status/0cbb1v1tgte5b7pk?svg=true)](https://ci.appveyor.com/project/jupyter-xeus/xproperty)
 [![Documentation Status](http://readthedocs.org/projects/xproperty/badge/?version=latest)](https://xproperty.readthedocs.io/en/latest/?badge=latest)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -51,7 +51,7 @@ http://xproperty.readthedocs.io/
 
 ## Dependencies
 
-`xproperty` depends on the [xtl](https://github.com/QuantStack/xtl) library.
+`xproperty` depends on the [xtl](https://github.com/xtensor-stack/xtl) library.
 
 | `xproperty` |     `xtl`     |
 |-------------|---------------|
