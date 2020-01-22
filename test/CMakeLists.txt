@@ -91,6 +91,7 @@ set(XPROPERTY_TESTS
     test_utils.hpp
     test_xobserved.cpp
     test_xproperty.cpp
+    test_xjson.cpp
 )
 
 add_executable(test_xproperty ${XPROPERTY_TESTS} ${XPROPERTY_HEADERS})

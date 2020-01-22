@@ -38,6 +38,7 @@ message(STATUS "Found xtl: ${xtl_INCLUDE_DIRS}/xtl")
 set(XPROPERTY_HEADERS
     ${XPROPERTY_INCLUDE_DIR}/xproperty/xproperty.hpp
     ${XPROPERTY_INCLUDE_DIR}/xproperty/xobserved.hpp
+    ${XPROPERTY_INCLUDE_DIR}/xproperty/xjson.hpp
     ${XPROPERTY_INCLUDE_DIR}/xproperty/xproperty_config.hpp
 )
 
