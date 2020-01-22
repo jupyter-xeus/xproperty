@@ -6,8 +6,6 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#include <iostream>
-
 #include "gtest/gtest.h"
 
 #include "xproperty/xobserved.hpp"
