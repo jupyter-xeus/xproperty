@@ -18,13 +18,14 @@ Basic Usage
 
     #include <iostream>
     #include <stdexcept>
+    #include <string>
 
     #include "xproperty/xobserved.hpp"
 
     struct Foo : public xp::xobserved<Foo>
     {
         XPROPERTY(double, Foo, bar);
-        XPROPERTY(double, Foo, baz);
+        XPROPERTY(std::string, Foo, baz);
     };
 
 Registering an observer and a validator
@@ -71,9 +72,18 @@ Shortcuts to link properties of observed objects
     Foo source, target;
     source.bar = 1.0;
 
-    // Link `source.bar` and `target.baz`
-    XDLINK(source, bar, target, baz);
+    // Link `source.bar` and `target.bar`
+    XDLINK(source, bar, target, bar);
 
     source.bar = 2.0;
-    std::cout << target.baz << std::endl;    // Outputs 2.0
+    std::cout << target.bar << std::endl;    // Outputs 2.0
+
+Out-of-order initialization of properties
+
+.. code::
+
+    auto foo = Foo()
+        .baz("hello, world");
+
+    std::cout << foo.baz << std::endl;       // Outputs hello, world
 
