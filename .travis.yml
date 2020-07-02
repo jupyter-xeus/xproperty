@@ -111,7 +111,7 @@ install:
     # Useful for debugging any issues with conda
     - conda info -a
     - cd test
-    - conda install xtl==0.6.11 nlohmann_json cmake -c conda-forge
+    - conda install xtl==0.6.11 nlohmann_json cmake=3.14 -c conda-forge
     - cd ..
     - cmake -DDOWNLOAD_GTEST=ON .
     - make -j2 test_xproperty
