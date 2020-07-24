@@ -182,14 +182,14 @@ namespace xp
     template <class T, class O>
     inline auto xproperty<T, O>::operator()(const value_type& arg) && noexcept -> owner_type
     {
-        m_value = arg;
+        m_value = owner()->template invoke_validators<T>(m_name, arg);
         return std::move(*owner());
     }
 
     template <class T, class O>
     inline auto xproperty<T, O>::operator()(value_type&& arg) && noexcept -> owner_type
     {
-        m_value = std::move(arg);
+        m_value = owner()->template invoke_validators<T>(m_name, std::move(arg));
         return std::move(*owner());
     }
 
