@@ -59,11 +59,6 @@ namespace xp
         template <class V>
         reference operator=(V&&);
 
-    protected:
-
-        template <class V>
-        reference assign(V&& value);
-
     private:
 
         owner_type* owner() noexcept;
@@ -202,14 +197,6 @@ namespace xp
     template <class T, class O>
     template <class V>
     inline auto xproperty<T, O>::operator=(V&& value) -> reference
-    {
-        // lambda_validator(rhs);
-        return this->assign(std::forward<V>(value));
-    }
-
-    template <class T, class O>
-    template <class V>
-    inline auto xproperty<T, O>::assign(V&& value) -> reference
     {
         m_value = owner()->template invoke_validators<T>(m_name, std::forward<V>(value));
         owner()->notify(m_name, m_value);
