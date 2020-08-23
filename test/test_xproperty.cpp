@@ -76,7 +76,7 @@ TEST(xproperty, string_conversion)
 
 struct Ro : xp::xobserved<Ro>
 {
-    XPROPERTY(double, Ro, bin, 1.0, [](double& i) { if (i < 0.0) i = 0.0; });
+    XPROPERTY(double, Ro, bin, 1.0, [](Ro&, double& i) { if (i < 0.0) i = 0.0; });
 };
 
 TEST(xproperty, lambda_validation)

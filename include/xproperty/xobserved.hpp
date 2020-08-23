@@ -26,40 +26,40 @@ namespace xp
     // Register a callback reacting to changes of the specified attribute of the owner.
 
     #define XOBSERVE(O, A, C) \
-    O.observe(#A, C);
+    O.register_observer(#A, C);
 
     // XUNOBSERVE(owner, Attribute)
     // Removes all callbacks reacting to changes of the specified attribute of the owner.
 
     #define XUNOBSERVE(O, A) \
-    O.unobserve(#A);
+    O.unregister_observer(#A);
 
     // XVALIDATE(owner, Attribute, Validator)
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate(#A, std::function<void(decltype(O)&, typename decltype(O.A)::value_type&)>(C));
+    O.register_validator(#A, std::function<void(decltype(O)&, typename decltype(O.A)::value_type&)>(C));
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
 
     #define XUNVALIDATE(O, A) \
-    O.unvalidate(#A);
+    O.unregister_validator(#A);
 
     // XDLINK(Source, AttributeName, Target, AttributeName)
     // Link the value of an attribute of a source xobserved object with the value of a target object.
 
     #define XDLINK(S, SA, T, TA)                                                   \
     T.TA = S.SA;                                                                   \
-    S.observe(#SA, [&S, &T](auto&) { T.TA = S.SA; });
+    S.register_observer(#SA, [&S, &T](auto&) { T.TA = S.SA; });
 
     // XLINK(Source, AttributeName, Target, AttributeName)
     // Bidirectional link between attributes of two xobserved objects.
 
     #define XLINK(S, SA, T, TA)                                                    \
     T.TA = S.SA;                                                                   \
-    S.observe(#SA, [&S, &T](const auto&) { T.TA = S.SA; });                        \
-    T.observe(#TA, [&S, &T](const auto&) { S.SA = T.TA; });
+    S.register_observer(#SA, [&S, &T](const auto&) { T.TA = S.SA; });                        \
+    T.register_observer(#TA, [&S, &T](const auto&) { S.SA = T.TA; });
 
     /*************************
      * xobserved declaration *
@@ -75,14 +75,14 @@ namespace xp
         derived_type& derived_cast() noexcept;
         const derived_type& derived_cast() const noexcept;
 
-        void observe(const std::string&, std::function<void(derived_type&)>);
+        void register_observer(const std::string&, std::function<void(derived_type&)>);
 
-        void unobserve(const std::string&);
+        void unregister_observer(const std::string&);
 
         template <class V>
-        void validate(const std::string&, std::function<void(derived_type&, V&)>);
+        void register_validator(const std::string&, std::function<void(derived_type&, V&)>);
 
-        void unvalidate(const std::string&);
+        void unregister_validator(const std::string&);
 
     protected:
 
@@ -132,26 +132,26 @@ namespace xp
     }
 
     template <class D>
-    inline void xobserved<D>::observe(const std::string& name, std::function<void(derived_type&)> cb)
+    inline void xobserved<D>::register_observer(const std::string& name, std::function<void(derived_type&)> cb)
     {
         m_observers.insert(std::make_pair(name, std::move(cb)));
     }
 
     template <class D>
-    inline void xobserved<D>::unobserve(const std::string& name)
+    inline void xobserved<D>::unregister_observer(const std::string& name)
     {
         m_observers.erase(name);
     }
 
     template <class D>
     template <class V>
-    inline void xobserved<D>::validate(const std::string& name, std::function<void(derived_type&, V&)> cb)
+    inline void xobserved<D>::register_validator(const std::string& name, std::function<void(derived_type&, V&)> cb)
     {
         m_validators.insert(std::make_pair(name, std::move(cb)));
     }
 
     template <class D>
-    inline void xobserved<D>::unvalidate(const std::string& name)
+    inline void xobserved<D>::unregister_validator(const std::string& name)
     {
         m_validators.erase(name);
     }
