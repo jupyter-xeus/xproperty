@@ -58,7 +58,7 @@ namespace xp
 
     #define XLINK(S, SA, T, TA)                                                    \
     T.TA = S.SA;                                                                   \
-    S.observe(S.derived_cast().SA.name(), [&S, &T](const auto&) { T.TA = S.SA; });                        \
+    S.observe(S.derived_cast().SA.name(), [&S, &T](const auto&) { T.TA = S.SA; }); \
     T.observe(T.derived_cast().TA.name(), [&S, &T](const auto&) { S.SA = T.TA; });
 
     /*************************
@@ -75,14 +75,14 @@ namespace xp
         derived_type& derived_cast() noexcept;
         const derived_type& derived_cast() const noexcept;
 
-        void observe(char const*, std::function<void(derived_type&)>);
+        void observe(const char*, std::function<void(derived_type&)>);
 
-        void unobserve(char const*);
+        void unobserve(const char*);
 
         template <class V>
-        void validate(char const*, std::function<void(derived_type&, V&)>);
+        void validate(const char*, std::function<void(derived_type&, V&)>);
 
-        void unvalidate(char const*);
+        void unvalidate(const char*);
 
     protected:
 
@@ -97,19 +97,18 @@ namespace xp
 
     private:
 
-        std::multimap<std::string, std::function<void(derived_type&)>> m_observers;
-        std::multimap<std::string, xtl::any> m_validators;
+        std::map<const char*, std::tuple<std::vector<xtl::any>, std::vector<std::function<void(derived_type&)>>>> m_accesses;
 
         template <class X, class Y>
         friend class xproperty;
 
         template <class T>
-        void notify(char const*, const T&);
+        void notify(const char*, const T&);
 
-        void invoke_observers(char const*);
+        void invoke_observers(const char*);
 
         template <class T, class V>
-        auto invoke_validators(char const*, V&& r);
+        auto invoke_validators(const char*, V&& r);
     };
 
     template <class E>
@@ -132,57 +131,55 @@ namespace xp
     }
 
     template <class D>
-    inline void xobserved<D>::observe(char const* name, std::function<void(derived_type&)> cb)
+    inline void xobserved<D>::observe(const char* name, std::function<void(derived_type&)> cb)
     {
-        m_observers.insert(std::make_pair(name, std::move(cb)));
+        std::get<1>(m_accesses[name]).emplace_back(std::move(cb));
     }
 
     template <class D>
-    inline void xobserved<D>::unobserve(char const* name)
+    inline void xobserved<D>::unobserve(const char* name)
     {
-        m_observers.erase(name);
+        std::get<1>(m_accesses[name]).clear();
     }
 
     template <class D>
     template <class V>
-    inline void xobserved<D>::validate(char const* name, std::function<void(derived_type&, V&)> cb)
+    inline void xobserved<D>::validate(const char* name, std::function<void(derived_type&, V&)> cb)
     {
-        m_validators.insert(std::make_pair(name, std::move(cb)));
+        std::get<0>(m_accesses[name]).emplace_back(std::move(cb));
     }
 
     template <class D>
-    inline void xobserved<D>::unvalidate(char const* name)
+    inline void xobserved<D>::unvalidate(const char* name)
     {
-        m_validators.erase(name);
+        std::get<0>(m_accesses[name]).clear();
     }
 
     template <class D>
     template <class T>
-    inline void xobserved<D>::notify(char const*, const T&)
+    inline void xobserved<D>::notify(const char*, const T&)
     {
     }
 
     template <class D>
-    inline void xobserved<D>::invoke_observers(char const* name)
+    inline void xobserved<D>::invoke_observers(const char* name)
     {
-        auto callbacks = m_observers.equal_range(name);
-        for(auto it = callbacks.first; it != callbacks.second; ++it)
+        for(auto& observer : std::get<1>(m_accesses[name]))
         {
-            it->second.operator()(derived_cast());
+            observer(derived_cast());
         }
     }
 
     template <class D>
     template <class T, class V>
-    inline auto xobserved<D>::invoke_validators(char const* name, V&& v)
+    inline auto xobserved<D>::invoke_validators(const char* name, V&& v)
     {
         using value_type = T;
         value_type value(std::forward<V>(v));
 
-        auto callbacks = m_validators.equal_range(name);
-        for(auto it = callbacks.first; it != callbacks.second; ++it)
+        for(auto& validator : std::get<0>(m_accesses[name]))
         {
-            xtl::any_cast<std::function<void(derived_type&, value_type&)>>(it->second)(derived_cast(), value);
+            xtl::any_cast<std::function<void(derived_type&, value_type&)>>(validator)(derived_cast(), value);
         }
 
         return value;
