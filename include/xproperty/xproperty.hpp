@@ -36,11 +36,12 @@ namespace xp
         using reference = T&;
         using const_reference = const T&;
 
-        xproperty(owner_type* owner, const std::string& name) XP_NOEXCEPT(value_type);
-        template <class V>
-        xproperty(owner_type* owner, const std::string& name, V&& value) XP_NOEXCEPT(value_type);
-        template <class V, class LV>
-        xproperty(owner_type* owner, const std::string& name, V&& value, LV&& lambda_validator) XP_NOEXCEPT(value_type);
+        template <size_t N>
+        xproperty(owner_type* owner, const char (&name)[N]) XP_NOEXCEPT(value_type);
+        template <class V, size_t N>
+        xproperty(owner_type* owner, const char (&name)[N], V&& value) XP_NOEXCEPT(value_type);
+        template <class V, class LV, size_t N>
+        xproperty(owner_type* owner, const char (&name)[N], V&& value, LV&& lambda_validator) XP_NOEXCEPT(value_type);
 
         operator reference() noexcept;
         operator const_reference() const noexcept;
@@ -54,7 +55,7 @@ namespace xp
         template <class Arg, class... Args>
         owner_type operator()(Arg&& arg, Args&&... args) && noexcept;
 
-        const std::string& name() const noexcept;
+        const char* name() const noexcept;
 
         template <class V>
         reference operator=(V&&);
@@ -64,7 +65,7 @@ namespace xp
         owner_type* owner() noexcept;
 
         std::ptrdiff_t m_offset;
-        std::string m_name;
+        const char* m_name;
         value_type m_value;
     };
 
@@ -111,16 +112,17 @@ namespace xp
      ****************************/
 
     template <class T, class O>
+    template <size_t N>
     inline xproperty<T, O>::xproperty(owner_type* owner,
-                                      const std::string& name) XP_NOEXCEPT(value_type)
+                                      const char (&name)[N]) XP_NOEXCEPT(value_type)
         : xproperty(owner, name, value_type())
     {
     }
 
     template <class T, class O>
-    template <class V>
+    template <class V, size_t N>
     inline xproperty<T, O>::xproperty(owner_type* owner,
-                                      const std::string& name,
+                                      const char (&name)[N],
                                       V&& value) XP_NOEXCEPT(value_type)
         : m_offset(reinterpret_cast<char*>(this) - reinterpret_cast<char*>(owner))
         , m_name(name)
@@ -129,19 +131,19 @@ namespace xp
     }
 
     template <class T, class O>
-    template <class V, class LV>
+    template <class V, class LV, size_t N>
     inline xproperty<T, O>::xproperty(owner_type* owner,
-                                      const std::string& name,
+                                      const char (&name)[N],
                                       V&& value,
                                       LV&& lambda_validator) XP_NOEXCEPT(value_type)
         : xproperty(owner, name, std::forward<V>(value))
     {
-        owner->validate(name, std::function<void(owner_type&, value_type&)>(
+        owner->validate(m_name, std::function<void(owner_type&, value_type&)>(
             [lambda_validator](owner_type&, value_type& v)
             { lambda_validator(v); }
             ));
     }
-    
+
     template <class T, class O>
     inline xproperty<T, O>::operator reference() noexcept
     {
@@ -189,7 +191,7 @@ namespace xp
     }
 
     template <class T, class O>
-    inline const std::string& xproperty<T, O>::name() const noexcept
+    inline const char* xproperty<T, O>::name() const noexcept
     {
         return m_name;
     }
