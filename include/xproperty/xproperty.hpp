@@ -40,10 +40,9 @@ namespace xp
         // with `template <size_t N> const char (&name)[N]` but this increases
         // the binary size.
         xproperty(owner_type* owner, const char* name) XP_NOEXCEPT(value_type);
-        template <class V>
-        xproperty(owner_type* owner, const char* name, V&& value) XP_NOEXCEPT(value_type);
-        template <class V, class LV>
-        xproperty(owner_type* owner, const char* name, V&& value, LV&& lambda_validator) XP_NOEXCEPT(value_type);
+        xproperty(owner_type* owner, const char* name, const value_type& value) XP_NOEXCEPT(value_type);
+        template <class LV>
+        xproperty(owner_type* owner, const char* name, const value_type& value, LV&& lambda_validator) XP_NOEXCEPT(value_type);
 
         operator reference() noexcept;
         operator const_reference() const noexcept;
@@ -121,23 +120,22 @@ namespace xp
     }
 
     template <class T, class O>
-    template <class V>
     inline xproperty<T, O>::xproperty(owner_type* owner,
                                       const char* name,
-                                      V&& value) XP_NOEXCEPT(value_type)
+                                      const value_type& value) XP_NOEXCEPT(value_type)
         : m_offset(reinterpret_cast<char*>(this) - reinterpret_cast<char*>(owner))
         , m_name(name)
-        , m_value(std::forward<V>(value))
+        , m_value(value)
     {
     }
 
     template <class T, class O>
-    template <class V, class LV>
+    template <class LV>
     inline xproperty<T, O>::xproperty(owner_type* owner,
                                       const char* name,
-                                      V&& value,
+                                      const value_type& value,
                                       LV&& lambda_validator) XP_NOEXCEPT(value_type)
-        : xproperty(owner, name, std::forward<V>(value))
+        : xproperty(owner, name, value)
     {
         owner->validate(m_name, std::function<void(owner_type&, value_type&)>(
             [lambda_validator](owner_type&, value_type& v)
