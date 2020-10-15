@@ -86,3 +86,13 @@ TEST(xproperty, lambda_validation)
     ro.bin = -1.0;
     ASSERT_EQ(0.0, ro.bin());
 }
+
+template <class T>
+struct DEBUG;
+
+TEST(xproperty, chaining)
+{
+    //DEBUG<decltype(Ro().bin)>::type t;
+    auto ro = Ro().bin(0.0);
+    ASSERT_EQ(0.0, ro.bin());
+}
