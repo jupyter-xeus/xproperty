@@ -1,0 +1,10 @@
+name: xproperty
+channels:
+  - conda-forge
+dependencies:
+  # Builde dependencies
+  - cmake
+  # Host dependencies
+  - xtl
+  - nlohmann_json
+
