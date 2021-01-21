@@ -5,6 +5,6 @@ dependencies:
   # Builde dependencies
   - cmake
   # Host dependencies
-  - xtl
+  - xtl=0.7.0
   - nlohmann_json
 
