@@ -30,10 +30,10 @@ of callbacks that can be registered dynamically.
 
 ## Installation
 
-`xproperty` is a header-only library. We provide a package for the conda package manager.
+`xproperty` is a header-only library. We provide a package for the mamba (or conda) package manager.
 
 ```bash
-conda install -c conda-forge xproperty
+mamba install -c conda-forge xproperty
 ```
 
 Or you can directly install it from the sources:
@@ -142,10 +142,10 @@ std::cout << target.baz << std::endl;    // Outputs 2.0
 
 Building the tests requires the [GTest](https://github.com/google/googletest) testing framework and [cmake](https://cmake.org).
 
-gtest and cmake are available as a packages for most linux distributions. Besideds, they can also be installed with the `conda` package manager (even on windows):
+gtest and cmake are available as a packages for most linux distributions. Besides, they can also be installed from conda-forge.
 
 ```bash
-conda install -c conda-forge gtest cmake
+mamba install -c conda-forge gtest cmake
 ```
 
 Once `gtest` and `cmake` are installed, you can build and run the tests:
@@ -157,11 +157,11 @@ cmake -DBUILD_TESTS=ON ..
 make -j2 xtest
 ```
 
-In the context of continuous integration with Travis CI, tests are run in a `conda` environment, which can be activated with
+In the context of continuous integration with Travis CI, tests are run in an environment, which can be activated with
 
 ```bash
 cd test
-conda env create -f ./test-environment.yml
+mamba env create -f ./test-environment.yml
 source activate test-xproperty
 cd ..
 cmake -DBUILD_TESTS=ON .
@@ -182,10 +182,10 @@ While doxygen must be installed separately, you can install breathe by typing
 pip install breathe
 ```
 
-Breathe can also be installed with `conda`
+Breathe can also be installed with `mamba` or `conda`
 
 ```bash
-conda install -c conda-forge breathe
+mamba install -c conda-forge breathe
 ```
 
 Finally, build the documentation with
