@@ -102,22 +102,38 @@ namespace xp
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
 
     #define XPROPERTY_GENERAL(T, O, D, DEFAULT_VALUE, lambda_validator)                                  \
-    ::xp::xproperty<T, O> D = (::xp::xproperty<T, O>(static_cast<O*>(this), #D, T(DEFAULT_VALUE), lambda_validator));
+    ::xp::xproperty<T, O> D = (::xp::xproperty<T, O>(static_cast<O*>(this), #D, T(DEFAULT_VALUE), lambda_validator))
 
     #define XPROPERTY_NODEFAULT(T, O, D)                                                                 \
-    ::xp::xproperty<T, O> D = (::xp::xproperty<T, O>(static_cast<O*>(this), #D, T()));
+    ::xp::xproperty<T, O> D = (::xp::xproperty<T, O>(static_cast<O*>(this), #D, T()))
 
     #define XPROPERTY_DEFAULT(T, O, D, V)                                                                \
-    ::xp::xproperty<T, O> D = (::xp::xproperty<T, O>(static_cast<O*>(this), #D, T(V)));
+    ::xp::xproperty<T, O> D = (::xp::xproperty<T, O>(static_cast<O*>(this), #D, T(V)))
 
     #define XPROPERTY_OVERLOAD(_1, _2, _3, _4, _5, NAME, ...) NAME
 
     #ifdef _MSC_VER
     // Workaround for MSVC not expanding macros
     #define XPROPERTY_EXPAND(x) x
-    #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
+    #define XPROPERTY(...)  \
+        XPROPERTY_EXPAND( \
+            XPROPERTY_OVERLOAD( \
+                __VA_ARGS__, \
+                XPROPERTY_GENERAL, \
+                XPROPERTY_DEFAULT, \
+                XPROPERTY_NODEFAULT, \
+                /* unused for silencing pedantic warnings */ \
+            )(__VA_ARGS__) \
+        )
     #else
-    #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
+    #define XPROPERTY(...) \
+        XPROPERTY_OVERLOAD( \
+            __VA_ARGS__, \
+            XPROPERTY_GENERAL, \
+            XPROPERTY_DEFAULT, \
+            XPROPERTY_NODEFAULT, \
+            /* unused for silencing pedantic warnings */ \
+        )(__VA_ARGS__)
     #endif
 
     /****************************
