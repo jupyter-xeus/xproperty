@@ -115,9 +115,25 @@ namespace xp
     #ifdef _MSC_VER
     // Workaround for MSVC not expanding macros
     #define XPROPERTY_EXPAND(x) x
-    #define XPROPERTY(...) XPROPERTY_EXPAND(XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__))
+    #define XPROPERTY(...)  \
+        XPROPERTY_EXPAND( \
+            XPROPERTY_OVERLOAD( \
+                __VA_ARGS__, \
+                XPROPERTY_GENERAL, \
+                XPROPERTY_DEFAULT, \
+                XPROPERTY_NODEFAULT, \
+                /* unused for silencing pedantic warnings */ \
+            )(__VA_ARGS__) \
+        )
     #else
-    #define XPROPERTY(...) XPROPERTY_OVERLOAD(__VA_ARGS__, XPROPERTY_GENERAL, XPROPERTY_DEFAULT, XPROPERTY_NODEFAULT)(__VA_ARGS__)
+    #define XPROPERTY(...) \
+        XPROPERTY_OVERLOAD( \
+            __VA_ARGS__, \
+            XPROPERTY_GENERAL, \
+            XPROPERTY_DEFAULT, \
+            XPROPERTY_NODEFAULT, \
+            /* unused for silencing pedantic warnings */ \
+        )(__VA_ARGS__)
     #endif
 
     /****************************
