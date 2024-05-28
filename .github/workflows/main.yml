@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - master
+    - main
   pull_request:
     branches:
-    - master
+    - main
 
 defaults:
   run:
@@ -53,3 +53,43 @@ jobs:
       - name: Test
         run: ./test_xproperty
         working-directory: build/test
+
+  test-win:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2019, windows-2022]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          init-shell: cmd.exe
+          environment-file: environment-dev.yml
+
+      - name: Make build directory
+        run: mkdir build
+
+      - name: Configure cmake
+        shell: cmd /C call {0}
+        run: |
+          cmake .. ^
+            -GNinja ^
+            -D DOWNLOAD_GTEST=ON
+        working-directory: build
+
+      - name: Build
+        shell: cmd /C call {0}
+        run: |
+          set CL=/MP
+          ninja build
+        working-directory: build
+
+      - name: Test
+        run: .\test_xproperty
+        working-directory: build\test
