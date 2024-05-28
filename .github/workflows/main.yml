@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+
+jobs:
+  test-unix:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+
+      - name: Install micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment-dev.yml
+
+      - name: Make build directory
+        run: mkdir build
+
+      - name: Configure cmake
+        run: |
+          cmake .. \
+            -D CMAKE_PREFIX_PATH=$CONDA_PREFIX \
+            -D CMAKE_INSTALL_PREFIX=$CONDA_PREFIX \
+            -D DOWNLOAD_GTEST=ON
+        working-directory: build
+
+      - name: Build
+        run: make -j ${{ steps.cpu-cores.outputs.count }} test_xproperty
+        working-directory: build
+
+      - name: Test
+        run: ./test_xproperty
+        working-directory: build/test
