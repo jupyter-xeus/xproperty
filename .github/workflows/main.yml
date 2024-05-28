@@ -87,9 +87,10 @@ jobs:
         shell: cmd /C call {0}
         run: |
           set CL=/MP
-          ninja build
+          ninja
         working-directory: build
 
       - name: Test
-        run: .\test_xproperty
+        shell: cmd /C call {0}
+        run: test_xproperty
         working-directory: build\test
