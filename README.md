@@ -51,11 +51,12 @@ http://xproperty.readthedocs.io/
 
 ## Dependencies
 
-`xproperty` depends on the [xtl](https://github.com/xtensor-stack/xtl) library.
+`xproperty` depends on [nlohmann_json](https://github.com/nlohmann/json).
+
+Versions prior to 0.12.0, also depend on the [xtl](https://github.com/xtensor-stack/xtl) library.
 
 | `xproperty` |     `xtl`     |
 |-------------|---------------|
-|   master    | >=0.7.0,<0.8  |
 |   0.11.0    | >=0.7.0,<0.8  |
 |   0.10.4    | >=0.6.11,<0.7 |
 |   0.10.3    | >=0.6.11,<0.7 |
