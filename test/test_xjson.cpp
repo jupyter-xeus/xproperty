@@ -6,7 +6,9 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#include "gtest/gtest.h"
+#include "doctest/doctest.h"
+
+#include <iostream>
 
 #include "xproperty/xobserved.hpp"
 #include "xproperty/xjson.hpp"
@@ -16,12 +18,16 @@ struct Baz : xp::xobserved<Baz>
     XPROPERTY(double, Baz, bar);
 };
 
-TEST(xproperty, json)
+TEST_SUITE("xproperty_json")
 {
-    std::cout << "0" << std::endl;
-    Baz foo;
-    foo.bar = 2.0;
-    nlohmann::json j = foo.bar;
-    double t = j;
-    ASSERT_EQ(2.0, t);
+    TEST_CASE("json")
+    {
+        std::cout << "0" << std::endl;
+        Baz foo;
+        foo.bar = 2.0;
+        nlohmann::json j = foo.bar;
+        double t = j;
+        REQUIRE_EQ(2.0, t);
+    }
 }
+

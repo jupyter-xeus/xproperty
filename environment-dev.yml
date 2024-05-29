@@ -9,4 +9,5 @@ dependencies:
   # Host dependencies
   - xtl=0.7.0
   - nlohmann_json
+  - doctest
 

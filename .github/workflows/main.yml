@@ -43,7 +43,7 @@ jobs:
           cmake .. \
             -D CMAKE_PREFIX_PATH=$CONDA_PREFIX \
             -D CMAKE_INSTALL_PREFIX=$CONDA_PREFIX \
-            -D DOWNLOAD_GTEST=ON
+            -D BUILD_TESTS=ON
         working-directory: build
 
       - name: Build
@@ -80,7 +80,7 @@ jobs:
         run: |
           cmake .. ^
             -GNinja ^
-            -D DOWNLOAD_GTEST=ON
+            -D BUILD_TESTS=ON
         working-directory: build
 
       - name: Build
