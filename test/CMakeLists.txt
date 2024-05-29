@@ -12,7 +12,6 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(xproperty-test)
 
     find_package(xproperty REQUIRED CONFIG)
-    find_package(xtl REQUIRED CONFIG)
     set(XPROPERTY_INCLUDE_DIR ${xproperty_INCLUDE_DIRS})
 endif ()
 
@@ -22,26 +21,6 @@ set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 include(CheckCXXCompilerFlag)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR (CMAKE_CXX_COMPILER_ID MATCHES "Intel" AND NOT WIN32))
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wunused-parameter -Wextra -Wreorder -Wconversion -Wsign-conversion")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast -Wunused-variable")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wunused-parameter -Wextra -Wreorder -Wconversion")
-    CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
-    CHECK_CXX_COMPILER_FLAG("-std=c++17" HAS_CPP17_FLAG)
-
-    if (CPP17 AND HAS_CPP17_FLAG)
-        set(CMAKE_CXX_STANDARD 17)
-        message(STATUS "Building with -std=c++17")
-    elseif (HAS_CPP14_FLAG)
-        set(CMAKE_CXX_STANDARD 14)
-        message(STATUS "Building with -std=c++14")
-    else()
-        message(FATAL_ERROR "Unsupported compiler -- xproperty requires C++14 support!")
-    endif()
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -62,7 +41,8 @@ set(XPROPERTY_TESTS
 )
 
 add_executable(test_xproperty ${XPROPERTY_TESTS} ${XPROPERTY_HEADERS})
+target_compile_features(test_xproperty PRIVATE cxx_std_17)
 target_include_directories(test_xproperty PRIVATE ${XPROPERTY_INCLUDE_DIR})
-target_link_libraries(test_xproperty PRIVATE xtl doctest::doctest Threads::Threads)
+target_link_libraries(test_xproperty PRIVATE doctest::doctest Threads::Threads)
 
 add_custom_target(xtest COMMAND test_xproperty DEPENDS test_xproperty)

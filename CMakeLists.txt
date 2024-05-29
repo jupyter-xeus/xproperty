@@ -25,13 +25,6 @@ set(${PROJECT_NAME}_VERSION
     ${XPROPERTY_VERSION_MAJOR}.${XPROPERTY_VERSION_MINOR}.${XPROPERTY_VERSION_PATCH})
 message(STATUS "xproperty v${${PROJECT_NAME}_VERSION}")
 
-# Dependencies
-# ============
-
-set(xtl_REQUIRED_VERSION 0.7.0)
-find_package(xtl ${xtl_REQUIRED_VERSION} REQUIRED)
-message(STATUS "Found xtl: ${xtl_INCLUDE_DIRS}/xtl")
-
 # Build
 # =====
 
@@ -45,8 +38,6 @@ set(XPROPERTY_HEADERS
 add_library(xproperty INTERFACE)
 target_include_directories(xproperty INTERFACE $<BUILD_INTERFACE:${XPROPERTY_INCLUDE_DIR}>
                                                $<INSTALL_INTERFACE:include>)
-target_link_libraries(xproperty INTERFACE xtl)
-
 OPTION(BUILD_TESTS "xproperty test suite" OFF)
 
 if(BUILD_TESTS)

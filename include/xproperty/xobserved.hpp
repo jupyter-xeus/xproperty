@@ -9,13 +9,12 @@
 #ifndef XOBSERVED_HPP
 #define XOBSERVED_HPP
 
+#include <any>
 #include <cstddef>
 #include <functional>
 #include <type_traits>
 #include <map>
 #include <vector>
-
-#include "xtl/xany.hpp"
 
 #include "xproperty.hpp"
 
@@ -97,7 +96,7 @@ namespace xp
 
     private:
 
-        std::map<const char*, std::tuple<std::vector<xtl::any>, std::vector<std::function<void(derived_type&)>>>> m_accesses;
+        std::map<const char*, std::tuple<std::vector<std::any>, std::vector<std::function<void(derived_type&)>>>> m_accesses;
 
         template <class X, class Y>
         friend class xproperty;
@@ -179,7 +178,7 @@ namespace xp
 
         for(auto& validator : std::get<0>(m_accesses[name]))
         {
-            xtl::any_cast<std::function<void(derived_type&, value_type&)>>(validator)(derived_cast(), value);
+            std::any_cast<std::function<void(derived_type&, value_type&)>>(validator)(derived_cast(), value);
         }
 
         return value;
