@@ -50,43 +50,8 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
 endif()
 
-if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
-    if(DOWNLOAD_GTEST)
-        # Download and unpack googletest at configure time
-        configure_file(downloadGTest.cmake.in googletest-download/CMakeLists.txt)
-    else()
-        # Copy local source of googletest at configure time
-        configure_file(copyGTest.cmake.in googletest-download/CMakeLists.txt)
-    endif()
-    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-                    RESULT_VARIABLE result
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-    if(result)
-        message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-    endif()
-    execute_process(COMMAND ${CMAKE_COMMAND} --build .
-                    RESULT_VARIABLE result
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-    if(result)
-        message(FATAL_ERROR "Build step for googletest failed: ${result}")
-    endif()
-
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-    # Add googletest directly to our build. This defines
-    # the gtest and gtest_main targets.
-    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                     ${CMAKE_CURRENT_BINARY_DIR}/googletest-build EXCLUDE_FROM_ALL)
-
-    set(GTEST_INCLUDE_DIRS "${gtest_SOURCE_DIR}/include")
-    set(GTEST_BOTH_LIBRARIES gtest_main gtest)
-else()
-    find_package(GTest REQUIRED)
-endif()
-
 find_package(Threads)
-
-include_directories(${GTEST_INCLUDE_DIRS} SYSTEM)
+find_package(doctest REQUIRED)
 
 set(XPROPERTY_TESTS
     main.cpp
@@ -98,9 +63,6 @@ set(XPROPERTY_TESTS
 
 add_executable(test_xproperty ${XPROPERTY_TESTS} ${XPROPERTY_HEADERS})
 target_include_directories(test_xproperty PRIVATE ${XPROPERTY_INCLUDE_DIR})
-if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
-    add_dependencies(test_xproperty gtest_main)
-endif()
-target_link_libraries(test_xproperty xtl ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(test_xproperty PRIVATE xtl doctest::doctest Threads::Threads)
 
 add_custom_target(xtest COMMAND test_xproperty DEPENDS test_xproperty)

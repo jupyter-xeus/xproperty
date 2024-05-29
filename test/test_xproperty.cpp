@@ -6,7 +6,7 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#include "gtest/gtest.h"
+#include "doctest/doctest.h"
 
 #include <cstddef>
 #include <iostream>
@@ -23,76 +23,79 @@ struct Foo : xp::xobserved<Foo>
     XPROPERTY(std::vector<std::string>, Foo, boz, {"Test"});
 };
 
-TEST(xproperty, basic)
+TEST_SUITE("xproperty")
 {
-    Foo foo;
-    foo.bar = 1.0;
-    ASSERT_EQ(1.0, double(foo.bar));
-    foo.bar = 2.0;
-    ASSERT_EQ(2.0, double(foo.bar));
-}
+    TEST_CASE("basic")
+    {
+        Foo foo;
+        foo.bar = 1.0;
+        REQUIRE_EQ(1.0, double(foo.bar));
+        foo.bar = 2.0;
+        REQUIRE_EQ(2.0, double(foo.bar));
+    }
 
-struct Wrapper : xp::xobserved<Wrapper>
-{
-    XPROPERTY(Foo, Wrapper, foo);
-};
+    struct Wrapper : xp::xobserved<Wrapper>
+    {
+        XPROPERTY(Foo, Wrapper, foo);
+    };
 
-TEST(xproperty, nested)
-{
-    Wrapper wrapper;
-    wrapper.foo().bar = 1.;
-    ASSERT_EQ(1.0, double(wrapper.foo().bar));
-}
+    TEST_CASE("nested")
+    {
+        Wrapper wrapper;
+        wrapper.foo().bar = 1.;
+        REQUIRE_EQ(1.0, double(wrapper.foo().bar));
+    }
 
-struct Bat : xp::xobserved<Bat>
-{
-    XPROPERTY(double, Bat, man, 1.0);
-};
+    struct Bat : xp::xobserved<Bat>
+    {
+        XPROPERTY(double, Bat, man, 1.0);
+    };
 
-TEST(xproperty, default_values)
-{
-    Bat bat;
+    TEST_CASE("default_values")
+    {
+        Bat bat;
 
-    ASSERT_EQ(1.0, double(bat.man));
-}
+        REQUIRE_EQ(1.0, double(bat.man));
+    }
 
-template <class D>
-struct str_base : xp::xobserved<D>
-{
-    using derived_type = D;
+    template <class D>
+    struct str_base : xp::xobserved<D>
+    {
+        using derived_type = D;
 
-    XPROPERTY(std::string, derived_type, name);
-};
+        XPROPERTY(std::string, derived_type, name);
+    };
 
-struct str_final : str_base<str_final>
-{
-};
+    struct str_final : str_base<str_final>
+    {
+    };
 
-TEST(xproperty, string_conversion)
-{
-    str_final str;
-    str.name = "test";
-}
+    TEST_CASE("string_conversion")
+    {
+        str_final str;
+        str.name = "test";
+    }
 
-struct Ro : xp::xobserved<Ro>
-{
-    XPROPERTY(double, Ro, bin, 1.0, [](double& i) { if (i < 0.0) i = 0.0; });
-};
+    struct Ro : xp::xobserved<Ro>
+    {
+        XPROPERTY(double, Ro, bin, 1.0, [](double& i) { if (i < 0.0) i = 0.0; });
+    };
 
-TEST(xproperty, lambda_validation)
-{
-    Ro ro;
-    ASSERT_EQ(1.0, ro.bin());
-    ro.bin = -1.0;
-    ASSERT_EQ(0.0, ro.bin());
-}
+    TEST_CASE("lambda_validation")
+    {
+        Ro ro;
+        REQUIRE_EQ(1.0, ro.bin());
+        ro.bin = -1.0;
+        REQUIRE_EQ(0.0, ro.bin());
+    }
 
-template <class T>
-struct DEBUG;
+    template <class T>
+    struct DEBUG;
 
-TEST(xproperty, chaining)
-{
-    //DEBUG<decltype(Ro().bin)>::type t;
-    auto ro = Ro().bin(0.0);
-    ASSERT_EQ(0.0, ro.bin());
+    TEST_CASE("chaining")
+    {
+        //DEBUG<decltype(Ro().bin)>::type t;
+        auto ro = Ro().bin(0.0);
+        REQUIRE_EQ(0.0, ro.bin());
+    }
 }

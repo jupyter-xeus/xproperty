@@ -6,7 +6,7 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#include "gtest/gtest.h"
+#include "doctest/doctest.h"
 
 #include <cstddef>
 #include <iostream>
@@ -22,80 +22,83 @@ struct Observed : public xp::xobserved<Observed>
     XPROPERTY(double, Observed, baz);
 };
 
-TEST(xobserved, basic)
+TEST_SUITE("xobserved")
 {
-    xp::reset_counter();
-    Observed foo;
+    TEST_CASE("basic")
+    {
+        xp::reset_counter();
+        Observed foo;
 
-    XOBSERVE(foo, bar, [](Observed&) {
-        ++xp::get_observe_count();
-    });
+        XOBSERVE(foo, bar, [](Observed&) {
+            ++xp::get_observe_count();
+        });
 
-    // Validator refusing negative values
-    XVALIDATE(foo, bar, [](Observed&, double& proposal) {
-        ++xp::get_validate_count();
-        if (proposal < 0.0)
-        {
-            throw std::runtime_error("Only non-negative values are valid.");
-        }
-    });
+        // Validator refusing negative values
+        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
+            ++xp::get_validate_count();
+            if (proposal < 0.0)
+            {
+                throw std::runtime_error("Only non-negative values are valid.");
+            }
+        });
 
-    foo.bar = 1.0;
-    ASSERT_EQ(1.0, double(foo.bar));
-    ASSERT_EQ(size_t(1), xp::get_observe_count());
-    ASSERT_EQ(size_t(1), xp::get_validate_count());
-    ASSERT_THROW({ foo.bar = -1.0; }, std::runtime_error);
-    ASSERT_EQ(1.0, double(foo.bar));
-    ASSERT_EQ(size_t(1), xp::get_observe_count());
-    ASSERT_EQ(size_t(2), xp::get_validate_count());
+        foo.bar = 1.0;
+        REQUIRE_EQ(1.0, double(foo.bar));
+        REQUIRE_EQ(size_t(1), xp::get_observe_count());
+        REQUIRE_EQ(size_t(1), xp::get_validate_count());
+        REQUIRE_THROWS_AS({ foo.bar = -1.0; }, std::runtime_error);
+        REQUIRE_EQ(1.0, double(foo.bar));
+        REQUIRE_EQ(size_t(1), xp::get_observe_count());
+        REQUIRE_EQ(size_t(2), xp::get_validate_count());
 
-    XUNVALIDATE(foo, bar);
-    foo.bar = -1.0;
-    ASSERT_EQ(-1.0, double(foo.bar));
-    ASSERT_EQ(size_t(2), xp::get_observe_count());
-    ASSERT_EQ(size_t(2), xp::get_validate_count());
+        XUNVALIDATE(foo, bar);
+        foo.bar = -1.0;
+        REQUIRE_EQ(-1.0, double(foo.bar));
+        REQUIRE_EQ(size_t(2), xp::get_observe_count());
+        REQUIRE_EQ(size_t(2), xp::get_validate_count());
 
-    // validator coercing values to be non-positive
-    XVALIDATE(foo, bar, [](Observed&, double& proposal) {
-        ++xp::get_validate_count();
-        if (proposal > 0)
-        {
-            proposal = 0.0;
-        }
-    });
+        // validator coercing values to be non-positive
+        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
+            ++xp::get_validate_count();
+            if (proposal > 0)
+            {
+                proposal = 0.0;
+            }
+        });
 
-    foo.bar = 1.0;
-    ASSERT_EQ(0.0, double(foo.bar));
-    ASSERT_EQ(size_t(3), xp::get_observe_count());
-    ASSERT_EQ(size_t(3), xp::get_validate_count());
-}
+        foo.bar = 1.0;
+        REQUIRE_EQ(0.0, double(foo.bar));
+        REQUIRE_EQ(size_t(3), xp::get_observe_count());
+        REQUIRE_EQ(size_t(3), xp::get_validate_count());
+    }
 
-TEST(xobserved, links)
-{
-    xp::reset_counter();
-    Observed source, target;
+    TEST_CASE("links")
+    {
+        xp::reset_counter();
+        Observed source, target;
 
-    source.bar = 1.0;
-    XDLINK(source, bar, target, baz);
-    ASSERT_EQ(1.0, double(target.baz));
-    source.bar = 2.0;
-    ASSERT_EQ(2.0, double(target.baz));
-}
+        source.bar = 1.0;
+        XDLINK(source, bar, target, baz);
+        REQUIRE_EQ(1.0, double(target.baz));
+        source.bar = 2.0;
+        REQUIRE_EQ(2.0, double(target.baz));
+    }
 
-TEST(xobserved, value_semantic)
-{
-    Observed foo1, foo2;
+    TEST_CASE("value_semantic")
+    {
+        Observed foo1, foo2;
 
-    XOBSERVE(foo1, bar, [](Observed&) {
-        ++xp::get_observe_count();
-    });
+        XOBSERVE(foo1, bar, [](Observed&) {
+            ++xp::get_observe_count();
+        });
 
-    foo1.bar = 2.5;
-    foo2.bar = 4.5;
+        foo1.bar = 2.5;
+        foo2.bar = 4.5;
 
-    xp::reset_counter();
-    foo1 = foo2;
+        xp::reset_counter();
+        foo1 = foo2;
 
-    ASSERT_EQ(double(foo2.bar), double(foo1.bar));
-    ASSERT_EQ(size_t(0), xp::get_observe_count());
+        REQUIRE_EQ(double(foo2.bar), double(foo1.bar));
+        REQUIRE_EQ(size_t(0), xp::get_observe_count());
+    }
 }
