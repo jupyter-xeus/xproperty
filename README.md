@@ -1,7 +1,5 @@
 # ![xproperty](docs/source/xproperty.svg)
-
-[![Azure Pipelines](https://dev.azure.com/jupyter-xeus/jupyter-xeus/_apis/build/status/jupyter-xeus.xproperty?branchName=master)](https://dev.azure.com/jupyter-xeus/jupyter-xeus/_build/latest?definitionId=8&branchName=master)
-[![Appveyor](https://ci.appveyor.com/api/projects/status/0cbb1v1tgte5b7pk?svg=true)](https://ci.appveyor.com/project/jupyter-xeus/xproperty)
+[![GithubActions](https://github.com/jupyter-xeus/xproperty/actions/workflows/main.yml/badge.svg)](https://github.com/jupyter-xeus/xproperty/actions/workflows/main.yml)
 [![Documentation Status](http://readthedocs.org/projects/xproperty/badge/?version=latest)](https://xproperty.readthedocs.io/en/latest/?badge=latest)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
