@@ -7,6 +7,6 @@ dependencies:
   - cxx-compiler
   - ninja
   # Host dependencies
-  - nlohmann_json
+  - nlohmann_json=3.12.0
   - doctest
 
