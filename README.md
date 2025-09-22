@@ -21,10 +21,7 @@ replaced at compiled time by
 We also provide the implementation of an `xobserved` class whose static validator and observer are bound to a dynamic unordered map
 of callbacks that can be registered dynamically.
 
-`xproperty` requires a modern C++ compiler supporting C++14. The following C++ compilers are supported:
-
-- On Windows platforms, Visual C++ 2015 Update 2, or more recent
-- On Unix platforms, gcc 4.9 or a recent version of Clang
+Up to version 0.12, `xproperty` requires a C++ compiler supporting C++14. Versions above require a C++ compiler supporting C++17.
 
 ## Installation
 
