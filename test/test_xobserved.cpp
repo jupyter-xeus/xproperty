@@ -8,6 +8,7 @@
 
 #include "doctest/doctest.h"
 
+#include <any>
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
@@ -16,7 +17,7 @@
 
 #include "xproperty/xobserved.hpp"
 
-struct Observed : public xp::xobserved<Observed>
+struct Observed : public xp::xobserved
 {
     XPROPERTY(double, Observed, bar);
     XPROPERTY(double, Observed, baz);
@@ -29,13 +30,14 @@ TEST_SUITE("xobserved")
         xp::reset_counter();
         Observed foo;
 
-        XOBSERVE(foo, bar, [](Observed&) {
+        XOBSERVE(foo, bar, [](const std::any&) {
             ++xp::get_observe_count();
         });
 
         // Validator refusing negative values
-        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
+        XVALIDATE(foo, bar, [](const std::any&, std::any& proposal_any) {
             ++xp::get_validate_count();
+            double& proposal = std::any_cast<double&>(proposal_any);
             if (proposal < 0.0)
             {
                 throw std::runtime_error("Only non-negative values are valid.");
@@ -58,8 +60,9 @@ TEST_SUITE("xobserved")
         REQUIRE_EQ(size_t(2), xp::get_validate_count());
 
         // validator coercing values to be non-positive
-        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
+        XVALIDATE(foo, bar, [](const std::any&, std::any& proposal_any) {
             ++xp::get_validate_count();
+            double& proposal = std::any_cast<double&>(proposal_any);
             if (proposal > 0)
             {
                 proposal = 0.0;
@@ -88,7 +91,7 @@ TEST_SUITE("xobserved")
     {
         Observed foo1, foo2;
 
-        XOBSERVE(foo1, bar, [](Observed&) {
+        XOBSERVE(foo1, bar, [](const std::any&) {
             ++xp::get_observe_count();
         });
 

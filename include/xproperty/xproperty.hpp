@@ -9,6 +9,7 @@
 #ifndef XPROPERTY_HPP
 #define XPROPERTY_HPP
 
+#include <any>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
@@ -92,9 +93,9 @@ namespace xp
     //
     // The owner type must have two methods
     //
-    //  - template <class P, class V>
-    //    auto invoke_validators(const std::string& name, V&& proposal) const;
-    //  - void invoke_observers(const std::string& name) const;
+    //  - template <class T, class V>
+    //    auto invoke_validators(const char* name, std::any& owner, V&& proposal);
+    //  - void invoke_observers(const char* name, const std::any& owner);
     //
     // The `T` typename is a universal reference on the proposed value.
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
@@ -148,10 +149,11 @@ namespace xp
                                       LV&& lambda_validator) XP_NOEXCEPT(value_type)
         : xproperty(owner, name, std::forward<V>(value))
     {
-        owner->validate(m_name, std::function<void(owner_type&, value_type&)>(
-            [lambda_validator](owner_type&, value_type& v)
-            { lambda_validator(v); }
-            ));
+        owner->validate(m_name,
+            [lambda_validator](std::any, std::any& value)
+            {
+                lambda_validator(std::any_cast<value_type&>(value));
+            });
     }
 
     template <class T, class O>
@@ -237,9 +239,9 @@ namespace xp
     template <class V>
     inline auto xproperty<T, O>::operator=(V&& value) -> reference
     {
-        m_value = owner()->template invoke_validators<T>(m_name, std::forward<V>(value));
+        m_value = owner()->template invoke_validators<T>(m_name, std::any(std::ref(*owner())), std::forward<V>(value));
         owner()->notify(m_name, m_value);
-        owner()->invoke_observers(m_name);
+        owner()->invoke_observers(m_name, *owner());
         return m_value;
     }
 

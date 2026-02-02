@@ -13,7 +13,7 @@
 #include "xproperty/xobserved.hpp"
 #include "xproperty/xjson.hpp"
 
-struct Baz : xp::xobserved<Baz>
+struct Baz : xp::xobserved
 {
     XPROPERTY(double, Baz, bar);
 };

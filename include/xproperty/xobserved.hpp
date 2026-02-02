@@ -25,61 +25,54 @@ namespace xp
     // Register a callback reacting to changes of the specified attribute of the owner.
 
     #define XOBSERVE(O, A, C) \
-    O.observe(O.derived_cast().A.name(), C);
+    O.observe(O.A.name(), C);
 
     // XUNOBSERVE(owner, Attribute)
     // Removes all callbacks reacting to changes of the specified attribute of the owner.
 
     #define XUNOBSERVE(O, A) \
-    O.unobserve(O.derived_cast().A.name());
+    O.unobserve(O.A.name());
 
     // XVALIDATE(owner, Attribute, Validator)
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate(O.derived_cast().A.name(), std::function<void(decltype(O)&, typename decltype(O.A)::value_type&)>(C));
+    O.validate(O.A.name(), C);
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
 
     #define XUNVALIDATE(O, A) \
-    O.unvalidate(O.derived_cast().A.name());
+    O.unvalidate(O.A.name());
 
     // XDLINK(Source, AttributeName, Target, AttributeName)
     // Link the value of an attribute of a source xobserved object with the value of a target object.
 
     #define XDLINK(S, SA, T, TA)                                                   \
     T.TA = S.SA;                                                                   \
-    S.observe(S.derived_cast().SA.name(), [&S, &T](auto&) { T.TA = S.SA; });
+    S.observe(S.SA.name(), [&](const std::any&) { T.TA = S.SA; });
 
     // XLINK(Source, AttributeName, Target, AttributeName)
     // Bidirectional link between attributes of two xobserved objects.
 
     #define XLINK(S, SA, T, TA)                                                    \
     T.TA = S.SA;                                                                   \
-    S.observe(S.derived_cast().SA.name(), [&S, &T](const auto&) { T.TA = S.SA; }); \
-    T.observe(T.derived_cast().TA.name(), [&S, &T](const auto&) { S.SA = T.TA; });
+    S.observe(S.SA.name(), [&](const std::any&) { T.TA = S.SA; }); \
+    T.observe(T.TA.name(), [&](const std::any&) { S.SA = T.TA; });
 
     /*************************
      * xobserved declaration *
      *************************/
 
-    template <class D>
     class xobserved
     {
     public:
 
-        using derived_type = D;
-
-        derived_type& derived_cast() noexcept;
-        const derived_type& derived_cast() const noexcept;
-
-        void observe(const char*, std::function<void(derived_type&)>);
+        void observe(const char*, std::function<void(const std::any&)>);
 
         void unobserve(const char*);
 
-        template <class V>
-        void validate(const char*, std::function<void(derived_type&, V&)>);
+        void validate(const char*, std::function<void(std::any, std::any&)>);
 
         void unvalidate(const char*);
 
@@ -96,7 +89,7 @@ namespace xp
 
     private:
 
-        std::map<const char*, std::tuple<std::vector<std::any>, std::vector<std::function<void(derived_type&)>>>> m_accesses;
+        std::map<const char*, std::tuple<std::vector<std::function<void(std::any, std::any&)>>, std::vector<std::function<void(const std::any&)>>>> m_accesses;
 
         template <class X, class Y>
         friend class xproperty;
@@ -104,84 +97,64 @@ namespace xp
         template <class T>
         void notify(const char*, const T&);
 
-        void invoke_observers(const char*);
+        void invoke_observers(const char*, const std::any& owner);
 
         template <class T, class V>
-        auto invoke_validators(const char*, V&& r);
+        auto invoke_validators(const char*, std::any owner, V&& r);
     };
 
     template <class E>
-    using is_xobserved = std::is_base_of<xobserved<E>, E>;
+    using is_xobserved = std::is_base_of<xobserved, E>;
 
     /****************************
      * xobserved implementation *
      ****************************/
 
-    template <class D>
-    inline auto xobserved<D>::derived_cast() noexcept -> derived_type&
-    {
-        return *static_cast<derived_type*>(this);
-    }
-
-    template <class D>
-    inline auto xobserved<D>::derived_cast() const noexcept -> const derived_type&
-    {
-        return *static_cast<const derived_type*>(this);
-    }
-
-    template <class D>
-    inline void xobserved<D>::observe(const char* name, std::function<void(derived_type&)> cb)
+    inline void xobserved::observe(const char* name, std::function<void(const std::any&)> cb)
     {
         std::get<1>(m_accesses[name]).emplace_back(std::move(cb));
     }
 
-    template <class D>
-    inline void xobserved<D>::unobserve(const char* name)
+    inline void xobserved::unobserve(const char* name)
     {
         std::get<1>(m_accesses[name]).clear();
     }
 
-    template <class D>
-    template <class V>
-    inline void xobserved<D>::validate(const char* name, std::function<void(derived_type&, V&)> cb)
+
+    inline void xobserved::validate(const char* name, std::function<void(std::any, std::any&)> cb)
     {
         std::get<0>(m_accesses[name]).emplace_back(std::move(cb));
     }
 
-    template <class D>
-    inline void xobserved<D>::unvalidate(const char* name)
+    inline void xobserved::unvalidate(const char* name)
     {
         std::get<0>(m_accesses[name]).clear();
     }
 
-    template <class D>
     template <class T>
-    inline void xobserved<D>::notify(const char*, const T&)
+    inline void xobserved::notify(const char*, const T&)
     {
     }
 
-    template <class D>
-    inline void xobserved<D>::invoke_observers(const char* name)
+    inline void xobserved::invoke_observers(const char* name, const std::any& owner)
     {
         for(auto& observer : std::get<1>(m_accesses[name]))
         {
-            observer(derived_cast());
+            observer(owner);
         }
     }
 
-    template <class D>
     template <class T, class V>
-    inline auto xobserved<D>::invoke_validators(const char* name, V&& v)
+    inline auto xobserved::invoke_validators(const char* name, std::any owner, V&& v)
     {
         using value_type = T;
         value_type value(std::forward<V>(v));
-
+        std::any value_any = value;
         for(auto& validator : std::get<0>(m_accesses[name]))
         {
-            std::any_cast<std::function<void(derived_type&, value_type&)>>(validator)(derived_cast(), value);
+            validator(std::move(owner), value_any);
         }
-
-        return value;
+        return std::any_cast<value_type>(value_any);
     }
 }
 

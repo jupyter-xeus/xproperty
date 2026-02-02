@@ -16,7 +16,7 @@
 #include "test_utils.hpp"
 #include "xproperty/xobserved.hpp"
 
-struct Foo : xp::xobserved<Foo>
+struct Foo : xp::xobserved
 {
     XPROPERTY(double, Foo, bar);
     XPROPERTY(double, Foo, baz);
@@ -34,7 +34,7 @@ TEST_SUITE("xproperty")
         REQUIRE_EQ(2.0, double(foo.bar));
     }
 
-    struct Wrapper : xp::xobserved<Wrapper>
+    struct Wrapper : xp::xobserved
     {
         XPROPERTY(Foo, Wrapper, foo);
     };
@@ -46,7 +46,7 @@ TEST_SUITE("xproperty")
         REQUIRE_EQ(1.0, double(wrapper.foo().bar));
     }
 
-    struct Bat : xp::xobserved<Bat>
+    struct Bat : xp::xobserved
     {
         XPROPERTY(double, Bat, man, 1.0);
     };
@@ -59,7 +59,7 @@ TEST_SUITE("xproperty")
     }
 
     template <class D>
-    struct str_base : xp::xobserved<D>
+    struct str_base : xp::xobserved
     {
         using derived_type = D;
 
@@ -76,7 +76,7 @@ TEST_SUITE("xproperty")
         str.name = "test";
     }
 
-    struct Ro : xp::xobserved<Ro>
+    struct Ro : xp::xobserved
     {
         XPROPERTY(double, Ro, bin, 1.0, [](double& i) { if (i < 0.0) i = 0.0; });
     };
