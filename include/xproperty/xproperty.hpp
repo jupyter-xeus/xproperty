@@ -239,9 +239,10 @@ namespace xp
     template <class V>
     inline auto xproperty<T, O>::operator=(V&& value) -> reference
     {
-        m_value = owner()->template invoke_validators<T>(m_name, std::any(std::ref(*owner())), std::forward<V>(value));
+        auto owner_any = std::any(std::ref(*owner()));
+        m_value = owner()->template invoke_validators<T>(m_name, owner_any, std::forward<V>(value));
         owner()->notify(m_name, m_value);
-        owner()->invoke_observers(m_name, *owner());
+        owner()->invoke_observers(m_name, owner_any);
         return m_value;
     }
 
