@@ -30,7 +30,7 @@ TEST_SUITE("xobserved")
         xp::reset_counter();
         Observed foo;
 
-        XOBSERVE(foo, bar, [](const Observed&) {
+        XOBSERVE(foo, bar, [](Observed&) {
             ++xp::get_observe_count();
         });
 
@@ -89,7 +89,7 @@ TEST_SUITE("xobserved")
     {
         Observed foo1, foo2;
 
-        XOBSERVE(foo1, bar, [](const Observed&) {
+        XOBSERVE(foo1, bar, [](Observed&) {
             ++xp::get_observe_count();
         });
 

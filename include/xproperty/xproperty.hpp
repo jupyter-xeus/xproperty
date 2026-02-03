@@ -95,7 +95,7 @@ namespace xp
     //
     //  - template <class T, class V>
     //    auto invoke_validators(const char* name, std::any& owner, V&& proposal);
-    //  - void invoke_observers(const char* name, const std::any& owner);
+    //  - void invoke_observers(const char* name, std::any& owner);
     //
     // The `T` typename is a universal reference on the proposed value.
     // The return type of `invoke_validator` must be convertible to the value_type of the property.
