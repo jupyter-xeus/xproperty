@@ -35,9 +35,8 @@ TEST_SUITE("xobserved")
         });
 
         // Validator refusing negative values
-        XVALIDATE(foo, bar, [](const std::any&, std::any& proposal_any) {
+        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
             ++xp::get_validate_count();
-            double& proposal = std::any_cast<double&>(proposal_any);
             if (proposal < 0.0)
             {
                 throw std::runtime_error("Only non-negative values are valid.");
@@ -60,9 +59,8 @@ TEST_SUITE("xobserved")
         REQUIRE_EQ(size_t(2), xp::get_validate_count());
 
         // validator coercing values to be non-positive
-        XVALIDATE(foo, bar, [](const std::any&, std::any& proposal_any) {
+        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
             ++xp::get_validate_count();
-            double& proposal = std::any_cast<double&>(proposal_any);
             if (proposal > 0)
             {
                 proposal = 0.0;

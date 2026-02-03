@@ -149,10 +149,10 @@ namespace xp
                                       LV&& lambda_validator) XP_NOEXCEPT(value_type)
         : xproperty(owner, name, std::forward<V>(value))
     {
-        owner->validate(m_name,
-            [lambda_validator](std::any, std::any& value)
+        owner->template validate<O, T>(m_name,
+            [lambda_validator](O&, T& v)
             {
-                lambda_validator(std::any_cast<value_type&>(value));
+                lambda_validator(v);
             });
     }
 

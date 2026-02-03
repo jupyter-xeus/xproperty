@@ -37,7 +37,7 @@ namespace xp
     // Register a validator for proposed values of the specified attribute.
 
     #define XVALIDATE(O, A, C) \
-    O.validate(O.A.name(), C);
+    O.validate<decltype(O), typename decltype(O.A)::value_type>(O.A.name(), C);
 
     // XUNVALIDATE(owner, Attribute)
     // Removes all validators for proposed values of the specified attribute.
@@ -73,7 +73,8 @@ namespace xp
 
         void unobserve(const char*);
 
-        void validate(const char*, std::function<void(std::any, std::any&)>);
+        template <class D, class V>
+        void validate(const char*, std::function<void(D&, V&)>);
 
         void unvalidate(const char*);
 
@@ -104,6 +105,7 @@ namespace xp
         auto invoke_validators(const char*, std::any owner, V&& r);
 
         void observe_impl(const char*, std::function<void(const std::any&)>);
+        void validate_impl(const char*, std::function<void(std::any, std::any&)>);
     };
 
     template <class E>
@@ -127,9 +129,13 @@ namespace xp
         std::get<1>(m_accesses[name]).clear();
     }
 
-    inline void xobserved::validate(const char* name, std::function<void(std::any, std::any&)> cb)
+    template <class D, class V>
+    inline void xobserved::validate(const char* name, std::function<void(D&, V&)> validator)
     {
-        std::get<0>(m_accesses[name]).emplace_back(std::move(cb));
+        validate_impl(name, [validator = std::move(validator)](std::any owner, std::any& proposal)
+        {
+            validator(std::any_cast<std::reference_wrapper<D>>(owner).get(), std::any_cast<V&>(proposal));
+        });
     }
 
     inline void xobserved::unvalidate(const char* name)
@@ -166,6 +172,11 @@ namespace xp
     inline void xobserved::observe_impl(const char* name, std::function<void(const std::any&)> cb)
     {
         std::get<1>(m_accesses[name]).emplace_back(std::move(cb));
+    }
+
+    inline void xobserved::validate_impl(const char* name, std::function<void(std::any, std::any&)> cb)
+    {
+        std::get<0>(m_accesses[name]).emplace_back(std::move(cb));
     }
 }
 
