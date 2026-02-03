@@ -25,7 +25,7 @@ namespace xp
     // Register a callback reacting to changes of the specified attribute of the owner.
 
     #define XOBSERVE(O, A, C) \
-    O.observe(O.A.name(), C);
+    O.observe<decltype(O)>(O.A.name(), C);
 
     // XUNOBSERVE(owner, Attribute)
     // Removes all callbacks reacting to changes of the specified attribute of the owner.
@@ -50,15 +50,15 @@ namespace xp
 
     #define XDLINK(S, SA, T, TA)                                                   \
     T.TA = S.SA;                                                                   \
-    S.observe(S.SA.name(), [&](const std::any&) { T.TA = S.SA; });
+    S.observe<decltype(S)>(S.SA.name(), [&](auto&) { T.TA = S.SA; });
 
     // XLINK(Source, AttributeName, Target, AttributeName)
     // Bidirectional link between attributes of two xobserved objects.
 
     #define XLINK(S, SA, T, TA)                                                    \
     T.TA = S.SA;                                                                   \
-    S.observe(S.SA.name(), [&](const std::any&) { T.TA = S.SA; }); \
-    T.observe(T.TA.name(), [&](const std::any&) { S.SA = T.TA; });
+    S.observe<decltype(S)>(S.SA.name(), [&](auto&) { T.TA = S.SA; }); \
+    T.observe<decltype(T)>(T.TA.name(), [&](auto&) { S.SA = T.TA; });
 
     /*************************
      * xobserved declaration *
@@ -68,7 +68,8 @@ namespace xp
     {
     public:
 
-        void observe(const char*, std::function<void(const std::any&)>);
+        template <class D>
+        void observe(const char*, std::function<void(const D&)>);
 
         void unobserve(const char*);
 
@@ -101,6 +102,8 @@ namespace xp
 
         template <class T, class V>
         auto invoke_validators(const char*, std::any owner, V&& r);
+
+        void observe_impl(const char*, std::function<void(const std::any&)>);
     };
 
     template <class E>
@@ -110,16 +113,19 @@ namespace xp
      * xobserved implementation *
      ****************************/
 
-    inline void xobserved::observe(const char* name, std::function<void(const std::any&)> cb)
+    template <class D>
+    inline void xobserved::observe(const char* name,  std::function<void(const D&)> observer)
     {
-        std::get<1>(m_accesses[name]).emplace_back(std::move(cb));
+        observe_impl(name, [observer = std::move(observer)](const std::any& owner)
+        {
+            observer(std::any_cast<const D&>(owner));
+        });
     }
 
     inline void xobserved::unobserve(const char* name)
     {
         std::get<1>(m_accesses[name]).clear();
     }
-
 
     inline void xobserved::validate(const char* name, std::function<void(std::any, std::any&)> cb)
     {
@@ -155,6 +161,11 @@ namespace xp
             validator(std::move(owner), value_any);
         }
         return std::any_cast<value_type>(value_any);
+    }
+
+    inline void xobserved::observe_impl(const char* name, std::function<void(const std::any&)> cb)
+    {
+        std::get<1>(m_accesses[name]).emplace_back(std::move(cb));
     }
 }
 
