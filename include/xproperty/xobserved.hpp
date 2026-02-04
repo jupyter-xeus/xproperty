@@ -20,46 +20,6 @@
 
 namespace xp
 {
-
-    // XOBSERVE(owner, Attribute, Callback)
-    // Register a callback reacting to changes of the specified attribute of the owner.
-
-    #define XOBSERVE(O, A, C) \
-    O.observe<decltype(O)>(O.A.name(), C);
-
-    // XUNOBSERVE(owner, Attribute)
-    // Removes all callbacks reacting to changes of the specified attribute of the owner.
-
-    #define XUNOBSERVE(O, A) \
-    O.unobserve(O.A.name());
-
-    // XVALIDATE(owner, Attribute, Validator)
-    // Register a validator for proposed values of the specified attribute.
-
-    #define XVALIDATE(O, A, C) \
-    O.validate<decltype(O), typename decltype(O.A)::value_type>(O.A.name(), C);
-
-    // XUNVALIDATE(owner, Attribute)
-    // Removes all validators for proposed values of the specified attribute.
-
-    #define XUNVALIDATE(O, A) \
-    O.unvalidate(O.A.name());
-
-    // XDLINK(Source, AttributeName, Target, AttributeName)
-    // Link the value of an attribute of a source xobserved object with the value of a target object.
-
-    #define XDLINK(S, SA, T, TA)                                                   \
-    T.TA = S.SA;                                                                   \
-    S.observe<decltype(S)>(S.SA.name(), [&](auto&) { T.TA = S.SA; });
-
-    // XLINK(Source, AttributeName, Target, AttributeName)
-    // Bidirectional link between attributes of two xobserved objects.
-
-    #define XLINK(S, SA, T, TA)                                                    \
-    T.TA = S.SA;                                                                   \
-    S.observe<decltype(S)>(S.SA.name(), [&](auto&) { T.TA = S.SA; }); \
-    T.observe<decltype(T)>(T.TA.name(), [&](auto&) { S.SA = T.TA; });
-
     /*************************
      * xobserved declaration *
      *************************/

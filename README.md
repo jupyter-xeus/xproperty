@@ -67,7 +67,7 @@ Versions prior to 0.12.0, also depend on the [xtl](https://github.com/xtensor-st
 
 - Declaring an observed object `Foo` with two properties named `bar` and `baz` of type `double`.
 - Registering a validator, executed prior to assignment, which can potentially coerce the proposed value.
-- Registering a notifier, executed after the assignement.
+- Registering a notifier, executed after the assignment.
 
 ```cpp
 #include <iostream>
@@ -87,12 +87,12 @@ Registering an observer and a validator
 ```cpp
 Foo foo;
 
-XOBSERVE(foo, bar, [](Foo& f)
+foo.observe<Foo>(foo.bar.name(), [](Foo& f)
 {
     std::cout << "Observer: New value of bar: " << f.bar << std::endl;
 });
 
-XVALIDATE(foo, bar, [](Foo&, double& proposal)
+foo.validate<Foo, double>(foo.bar.name(), [](Foo&, double& proposal)
 {
     std::cout << "Validator: Proposal: " << proposal << std::endl;
     if (proposal < 0)
@@ -128,7 +128,8 @@ Foo source, target;
 source.bar = 1.0;
 
 // Link `source.bar` and `target.baz`
-XDLINK(source, bar, target, baz);
+target.baz = source.bar;
+source.observe<Foo>(source.bar.name(), [&](auto&) { target.baz = source.bar; });
 
 source.bar = 2.0;
 std::cout << target.baz << std::endl;    // Outputs 2.0

@@ -30,12 +30,12 @@ TEST_SUITE("xobserved")
         xp::reset_counter();
         Observed foo;
 
-        XOBSERVE(foo, bar, [](Observed&) {
+        foo.observe<Observed>(foo.bar.name(), [](Observed&) {
             ++xp::get_observe_count();
         });
 
         // Validator refusing negative values
-        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
+        foo.validate<Observed, double>(foo.bar.name(), [](Observed&, double& proposal) {
             ++xp::get_validate_count();
             if (proposal < 0.0)
             {
@@ -52,14 +52,14 @@ TEST_SUITE("xobserved")
         REQUIRE_EQ(size_t(1), xp::get_observe_count());
         REQUIRE_EQ(size_t(2), xp::get_validate_count());
 
-        XUNVALIDATE(foo, bar);
+        foo.unvalidate(foo.bar.name());
         foo.bar = -1.0;
         REQUIRE_EQ(-1.0, double(foo.bar));
         REQUIRE_EQ(size_t(2), xp::get_observe_count());
         REQUIRE_EQ(size_t(2), xp::get_validate_count());
 
         // validator coercing values to be non-positive
-        XVALIDATE(foo, bar, [](Observed&, double& proposal) {
+        foo.validate<Observed, double>(foo.bar.name(), [](Observed&, double& proposal) {
             ++xp::get_validate_count();
             if (proposal > 0)
             {
@@ -79,7 +79,8 @@ TEST_SUITE("xobserved")
         Observed source, target;
 
         source.bar = 1.0;
-        XDLINK(source, bar, target, baz);
+        target.baz = source.bar;
+        source.observe<Observed>(source.bar.name(), [&](auto&) { target.baz = source.bar; });
         REQUIRE_EQ(1.0, double(target.baz));
         source.bar = 2.0;
         REQUIRE_EQ(2.0, double(target.baz));
@@ -89,7 +90,7 @@ TEST_SUITE("xobserved")
     {
         Observed foo1, foo2;
 
-        XOBSERVE(foo1, bar, [](Observed&) {
+        foo1.observe<Observed>(foo1.bar.name(), [](Observed&) {
             ++xp::get_observe_count();
         });
 

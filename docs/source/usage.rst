@@ -12,7 +12,7 @@ Basic Usage
 
 - Declaring an observed object ``Foo`` with two properties named ``bar`` and ``baz`` of type `double`.
 - Registering a validator, executed prior to assignment, which can potentially coerce the proposed value.
-- Registering a notifier, executed after the assignement.
+- Registering a notifier, executed after the assignment.
 
 .. code::
 
@@ -34,11 +34,11 @@ Registering an observer and a validator
 
     Foo foo;
 
-    XOBSERVE(foo, bar, [](const Foo& f) {
+    foo.observe<Foo>(foo.bar.name(), [](const Foo& f) {
         std::cout << "Observer: New value of bar: " << f.bar << std::endl;
     });
 
-    XVALIDATE(foo, bar, [](Foo&, double proposal) {
+    foo.validate<Foo, double>(foo.bar.name(), [](Foo&, double& proposal) {
         std::cout << "Validator: Proposal: " << proposal << std::endl;
         if (proposal < 0)
         {
@@ -73,7 +73,8 @@ Shortcuts to link properties of observed objects
     source.bar = 1.0;
 
     // Link `source.bar` and `target.bar`
-    XDLINK(source, bar, target, bar);
+    target.bar = source.bar;
+    source.observe<Foo>(source.bar.name(), [&](auto&) { target.bar = source.bar; });
 
     source.bar = 2.0;
     std::cout << target.bar << std::endl;    // Outputs 2.0
