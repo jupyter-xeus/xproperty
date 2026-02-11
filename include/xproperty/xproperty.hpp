@@ -50,23 +50,6 @@ namespace xp
         reference operator()() noexcept;
         const_reference operator()() const noexcept;
 
-        owner_type operator()(const value_type& arg) && noexcept;
-        owner_type operator()(value_type&& arg) && noexcept;
-
-        template <class Arg, class... Args>
-        owner_type operator()(Arg&& arg, Args&&... args) && noexcept;
-
-// Workaround for MSVC: MSVC calls operator() const & overload instead
-// of operator() && overloads of temporaries in method chaining. Not
-// defining operator() const & overload results in a failing build
-// with error C3849.
-#ifdef _MSC_VER
-        owner_type operator()(const value_type& arg) const & noexcept;
-        owner_type operator()(value_type&& arg) const & noexcept;
-
-        template <class Arg, class... Args>
-        owner_type operator()(Arg&& arg, Args&&... args) const & noexcept;
-#endif
         const char* name() const noexcept;
 
         template <class V>
@@ -180,55 +163,6 @@ namespace xp
     {
         return m_value;
     }
-
-    template <class T, class O>
-    inline auto xproperty<T, O>::operator()(const value_type& arg) && noexcept -> owner_type
-    {
-        m_value = arg;
-        return std::move(*owner());
-    }
-
-    template <class T, class O>
-    inline auto xproperty<T, O>::operator()(value_type&& arg) && noexcept -> owner_type
-    {
-        m_value = std::move(arg);
-        return std::move(*owner());
-    }
-
-    template <class T, class O>
-    template <class Arg, class... Args>
-    inline auto xproperty<T, O>::operator()(Arg&& arg, Args&&... args) && noexcept -> owner_type
-    {
-        m_value = value_type(std::forward<Arg>(arg), std::forward<Args>(args)...);
-        return std::move(*owner());
-    }
-
-#ifdef _MSC_VER
-    template <class T, class O>
-    inline auto xproperty<T, O>::operator()(const value_type& arg) const & noexcept -> owner_type
-    {
-        auto athis = const_cast<xproperty<T, O>*>(this);
-        athis->m_value = arg;
-        return std::move(*(athis->owner()));
-    }
-
-    template <class T, class O>
-    inline auto xproperty<T, O>::operator()(value_type&& arg) const & noexcept -> owner_type
-    {
-        auto athis = const_cast<xproperty<T, O>*>(this);
-        athis->m_value = std::move(arg);
-        return std::move(*(athis->owner()));
-    }
-
-    template <class T, class O>
-    template <class Arg, class... Args>
-    inline auto xproperty<T, O>::operator()(Arg&& arg, Args&&... args) const & noexcept -> owner_type
-    {
-        auto athis = const_cast<xproperty<T, O>*>(this);
-        athis->m_value = value_type(std::forward<Arg>(arg), std::forward<Args>(args)...);
-        return std::move(*(athis->owner()));
-    }
-#endif // _MSC_VER
 
     template <class T, class O>
     inline const char* xproperty<T, O>::name() const noexcept

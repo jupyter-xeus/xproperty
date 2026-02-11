@@ -91,11 +91,4 @@ TEST_SUITE("xproperty")
 
     template <class T>
     struct DEBUG;
-
-    TEST_CASE("chaining")
-    {
-        //DEBUG<decltype(Ro().bin)>::type t;
-        auto ro = Ro().bin(0.0);
-        REQUIRE_EQ(0.0, ro.bin());
-    }
 }
