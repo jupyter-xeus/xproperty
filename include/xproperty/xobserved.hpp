@@ -38,6 +38,9 @@ namespace xp
 
         void unvalidate(const char*);
 
+        template <class P>
+        void register_property(P& prop);
+
     protected:
 
         xobserved() = default;
@@ -101,6 +104,11 @@ namespace xp
     inline void xobserved::unvalidate(const char* name)
     {
         std::get<0>(m_accesses[name]).clear();
+    }
+
+    template <class P>
+    void xobserved::register_property(P& prop)
+    {
     }
 
     template <class T>

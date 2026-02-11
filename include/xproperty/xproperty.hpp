@@ -139,6 +139,7 @@ namespace xp
         , m_name(name)
         , m_value(std::forward<V>(value))
     {
+        owner->register_property(*this);
     }
 
     template <class T, class O>
