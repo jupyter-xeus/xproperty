@@ -129,12 +129,12 @@ namespace xp
     {
         using value_type = T;
         value_type value(std::forward<V>(v));
-        std::any value_any = value;
+        std::any value_any = std::move(value);
         for(auto& validator : std::get<0>(m_accesses[name]))
         {
             validator(owner, value_any);
         }
-        return std::any_cast<value_type>(value_any);
+        return std::any_cast<value_type>(std::move(value_any));
     }
 
     inline void xobserved::observe_impl(const char* name, std::function<void(std::any&)> cb)
